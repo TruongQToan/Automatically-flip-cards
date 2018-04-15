@@ -14,4 +14,4 @@ This add-on automatically flips cards based on the lengths of the audios in the 
 ##### OR
 2. Use the installation code: 631932779
 ## Liscence 
-This add on use code of Mutagen library to get lengths of mp3 files. Mutagen is licensed under the GPL version 2 or later.
+This add on uses code of Mutagen library to get lengths of mp3 files. Mutagen is licensed under the GPL version 2 or later.
