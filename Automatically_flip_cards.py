@@ -133,14 +133,14 @@ def set_time_limit():
 
 def show_answer():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
-        TimeKeep.is_question = not TimeKeep.is_question
+        TimeKeep.is_question = False
         mw.reviewer._showAnswer()
     if TimeKeep.play:
         TimeKeep.timer = mw.progress.timer(TimeKeep.time_limit_answer, change_card, False)
 
 def change_card():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
-        TimeKeep.is_question = not TimeKeep.is_question
+        TimeKeep.is_question = True
         mw.reviewer._answerCard(mw.reviewer._defaultEase())
 
 def check_valid_card():
