@@ -40,6 +40,7 @@ class TimeKeep(object):
     play = False
     timer = None
     is_question = True
+    adjust_both = False
 
     def __init__(self):
         pass
@@ -233,10 +234,18 @@ def my_keyHandler(self, evt):
     if key == "0":
         audio_speed = 1.0
     elif key == "{":
+        TimeKeep.adjust_both = False
         audio_speed = max(0.1, audio_speed - 0.1)
     elif key == "}":
+        TimeKeep.adjust_both = False
         audio_speed = min(4.0, audio_speed + 0.1)
-    if key in "0\{\}":    
+    elif key == "<":
+        TimeKeep.adjust_both = True
+        audio_speed = max(0.1, audio_speed - 0.1)
+    elif key == ">":
+        TimeKeep.adjust_both = True
+        audio_speed = min(4.0, audio_speed + 0.1)
+    if key in "0\{\}<>":    
         if anki.sound.mplayerManager is not None and not TimeKeep.is_question:
             if anki.sound.mplayerManager.mplayer is not None: 
                 anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
@@ -305,11 +314,11 @@ def my_runHandler(self):
                 #self.startProcess()
                 self.mplayer.stdin.write(cmd)
 
-            if audio_speed == 1.0:
+            if TimeKeep.adjust_both and (abs(audio_speed - 1.0) > 0.01 or audio_speed == 1.0):
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % 1.0)
+                self.mplayer.stdin.write("speed_set %f \n" % audio_speed)
                 self.mplayer.stdin.write("seek 0 1\n")
-            elif abs(audio_speed - 1.0) > 0.01 and not TimeKeep.is_question:
+            elif (abs(audio_speed - 1.0) > 0.01 or audio_speed == 1.0) and not TimeKeep.is_question:
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
                 self.mplayer.stdin.write("speed_set %f \n" % audio_speed)
                 self.mplayer.stdin.write("seek 0 1\n")
