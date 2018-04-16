@@ -9,6 +9,8 @@ This add-on automatically flips cards based on the lengths of the audios in the 
 * Press Shift-J to add silence after both front and back cards.
 * Press { to decrease the speeds of back cards' audios.
 * Press } to increase the speeds of back cards' audios.
+* Press < to decrease the speeds of both front and back cards' audios.
+* Press > to increase the speeds of both front and back cards' audios.
 ## Installation
 1. Place "Automatically_flip_cards.py" file and "mutagen" folder in this repository in the anki add folder.
 ##### OR
