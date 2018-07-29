@@ -25,8 +25,10 @@ from anki.sound import MplayerMonitor
 from anki.hooks import addHook, wrap
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo
+import re
 
 audio_speed = 1.0
+regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
 stdoutQueue = Queue()
 
 class TimeKeep(object):
@@ -76,6 +78,27 @@ def get_times(card, m):
         answer_times.extend(get_time(a))
     return question_times, answer_times
 
+def calculate_time(card, media_path, f):
+    time = 0
+    for field, value in card.note().items():
+        if field in f:
+            for v in re.findall(regex, value):
+                #index = value.find('[sound:')
+                #value = value[index+7:-1]
+                mp = media_path + v[6:]
+                if v[-3:] == 'mp3':
+                    audio = MP3(mp)
+                    length = str(audio.info.length)
+                    time += int(float(length) * 1000)
+                elif v[-3:] == 'wav':
+                    with contextlib.closing(wave.open(mp, 'r')) as f:
+                        frames = f.getnframes()
+                        rate = f.getframerate()
+                        length = frames / float(rate)
+                        time += int(float(length) * 1000)
+    return time
+
+
 def set_time_limit():
     global audio_speed
     card = mw.reviewer.card
@@ -91,40 +114,11 @@ def set_time_limit():
         time1 = 0
         time2 = 0
         if len(question_times) > 0:
-            for field, value in card.note().items():
-                if field in question_times:
-                    index = value.find('[sound:')
-                    value = value[index+7:-1]
-                    mp = media_path + value
-                    if value[-3:] == 'mp3':
-                        audio = MP3(mp)
-                        length = str(audio.info.length)
-                        time1 += int(float(length) * 1000)
-                    elif value[-3:] == 'wav':
-                        with contextlib.closing(wave.open(mp, 'r')) as f:
-                            frames = f.getnframes()
-                            rate = f.getframerate()
-                            length = frames / float(rate)
-                            time1 += int(float(length) * 1000)
+            time1 = calculate_time(card, media_path, question_times)
         else:
             time1 = 1500
         if len(answer_times) > 0:
-            for field, value in card.note().items():
-                if field in answer_times:
-                    index = value.find('[sound:')
-                    value = value[index+7:-1]
-                    mp = media_path + value
-                    #utils.showInfo(mp)
-                    if value[-3:] == 'mp3':
-                        audio = MP3(mp)
-                        length = str(audio.info.length)
-                        time2 += int(float(length) * 1000)
-                    elif value[-3:] == 'wav':
-                        with contextlib.closing(wave.open(mp, 'r')) as f:
-                            frames = f.getnframes()
-                            rate = f.getframerate()
-                            length = frames / float(rate)
-                            time2 += int(float(length) * 1000)
+            time2 = calculate_time(card, media_path, answer_times)
         else:
             time2 = 1500
         TimeKeep.time_limit_question =  time1 + time2 / audio_speed + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
