@@ -78,10 +78,10 @@ def get_times(card, m):
         answer_times.extend(get_time(a))
     return question_times, answer_times
 
-def calculate_time(card, media_path, f):
+def calculate_time(card, media_path, time_fields):
     time = 0
     for field, value in card.note().items():
-        if field in f:
+        if field in time_fields:
             for v in re.findall(regex, value):
                 #index = value.find('[sound:')
                 #value = value[index+7:-1]
@@ -397,6 +397,16 @@ mw.form.menuTools.addAction(action)
 
 action = QAction("Stop automatically flip card", mw)
 action.setShortcut('k')
+action.triggered.connect(stop)
+mw.form.menuTools.addAction(action)
+
+action = QAction("Automatically flip card", mw)
+action.setShortcut('Ctrl+j')
+action.triggered.connect(start)
+mw.form.menuTools.addAction(action)
+
+action = QAction("Stop automatically flip card", mw)
+action.setShortcut('Ctrl+k')
 action.triggered.connect(stop)
 mw.form.menuTools.addAction(action)
 
