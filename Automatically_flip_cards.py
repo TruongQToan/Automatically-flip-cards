@@ -26,7 +26,7 @@ from anki.hooks import addHook, wrap
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo
 import re
-import time
+
 
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
@@ -118,7 +118,6 @@ def calculate_time(card, media_path, time_fields):
 
 
 def set_time_limit():
-    t0 = time.clock()
     global audio_speed
     card = mw.reviewer.card
     if card is not None:
@@ -142,6 +141,7 @@ def set_time_limit():
             time2 = 1500
         TimeKeep.time_limit_question =  time1 + time2 / audio_speed + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
         TimeKeep.time_limit_answer =  (time2 / audio_speed) * 2 + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_answer * 1000)
+
 
 def show_answer():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
