@@ -26,10 +26,12 @@ from anki.hooks import addHook, wrap
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo
 import re
+import time
 
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
 stdoutQueue = Queue()
+
 
 class TimeKeep(object):
     time_limit_question = 0
@@ -47,11 +49,13 @@ class TimeKeep(object):
     def __init__(self):
         pass
 
+
 def find_audio_fields(card):
     TimeKeep.audio_fields = []
     for field, value in card.note().items():
         if "[sound:" in value and (".mp3" in value or ".wav" in value):
             TimeKeep.audio_fields.append(field)
+
 
 def get_time(q):
     q_times = []
@@ -67,6 +71,7 @@ def get_time(q):
         else: break
     return q_times
 
+
 def get_times(card, m):
     question_times = []
     answer_times = []
@@ -78,11 +83,24 @@ def get_times(card, m):
         answer_times.extend(get_time(a))
     return question_times, answer_times
 
+
 def calculate_time(card, media_path, time_fields):
     time = 0
     for field, value in card.note().items():
         if field in time_fields:
-            for v in re.findall(regex, value):
+            position = 0
+            audio_names = []
+            while True:
+                position = value.find("[sound:", position)
+                if position == -1:
+                    break
+                e = value.find("]", position)
+                if e == -1:
+                    break
+                audio_names.append(value[position + 1:e])
+                position = e
+            # for v in re.findall(regex, value):
+            for v in audio_names:
                 #index = value.find('[sound:')
                 #value = value[index+7:-1]
                 mp = media_path + v[6:]
@@ -100,6 +118,7 @@ def calculate_time(card, media_path, time_fields):
 
 
 def set_time_limit():
+    t0 = time.clock()
     global audio_speed
     card = mw.reviewer.card
     if card is not None:
@@ -124,7 +143,6 @@ def set_time_limit():
         TimeKeep.time_limit_question =  time1 + time2 / audio_speed + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
         TimeKeep.time_limit_answer =  (time2 / audio_speed) * 2 + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_answer * 1000)
 
-
 def show_answer():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
         TimeKeep.is_question = False
@@ -132,10 +150,12 @@ def show_answer():
     if TimeKeep.play:
         TimeKeep.timer = mw.progress.timer(TimeKeep.time_limit_answer, change_card, False)
 
+
 def change_card():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
         TimeKeep.is_question = True
         mw.reviewer._answerCard(mw.reviewer._defaultEase())
+
 
 def check_valid_card():
     # utils.showInfo("Check Valid Card")
@@ -144,12 +164,14 @@ def check_valid_card():
     if card.note() is None: return False
     return True
 
+
 def show_question():
     if not check_valid_card():
         return
     set_time_limit()
     if TimeKeep.play:
         TimeKeep.timer = mw.progress.timer(TimeKeep.time_limit_question, show_answer, False)
+
 
 def start():
     if TimeKeep.play: return
@@ -166,6 +188,7 @@ def start():
         if check_valid_card():
             change_card()
 
+
 def stop():
     global audio_speed
     if not TimeKeep.play: return
@@ -174,6 +197,7 @@ def stop():
     if TimeKeep.timer is not None: TimeKeep.timer.stop()
     TimeKeep.timer = None
     audio_speed = 1.0
+
 
 def add_time_base(t=1):
     if TimeKeep.play:
@@ -205,19 +229,24 @@ def add_time_base(t=1):
         TimeKeep.add_time = True
     else: utils.showInfo('Invalid additional time. Time value must be in the range 0 to 20')
 
+
 def add_time():
     add_time_base(1)
+
 
 def add_time_question():
     add_time_base(2)
 
+
 def add_time_answer():
     add_time_base(3)
+
 
 def enqueue_output(out, queue):
     for line in iter(out.readline, b''):
         queue.put(line)
     out.close()
+
 
 def my_keyHandler(self, evt):
     #global messageBuff
@@ -371,6 +400,7 @@ def my_runHandler(self):
                 showInfo("Clean")
                 return True
         self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
+
 
 def my_startProcessHandler(self):
     try:
