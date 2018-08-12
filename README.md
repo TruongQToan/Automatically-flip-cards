@@ -11,6 +11,7 @@ This add-on automatically flips cards based on the lengths of the audios in the 
 * Press } to increase the speeds of back cards' audios.
 * Press < to decrease the speeds of both front and back cards' audios.
 * Press > to increase the speeds of both front and back cards' audios.
+* Press Ctrl+h to change mode. There are two modes. In the default mode, the add on will get time of all the audios in the card. In the other mode, it will only get the time of the first audio.
 ## Installation
 1. Place "Automatically_flip_cards.py" file and "mutagen" folder in this repository in the anki add folder.
 ##### OR
