@@ -30,6 +30,7 @@ import re
 
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
+mode = 1 # 1: add times in all audios, 0: get time in the first audio
 stdoutQueue = Queue()
 
 
@@ -86,10 +87,11 @@ def get_times(card, m):
 
 def calculate_time(card, media_path, time_fields):
     time = 0
+    audios = []
     for field, value in card.note().items():
         if field in time_fields:
             position = 0
-            audio_names = []
+            audio_names_field = []
             while True:
                 position = value.find("[sound:", position)
                 if position == -1:
@@ -97,23 +99,26 @@ def calculate_time(card, media_path, time_fields):
                 e = value.find("]", position)
                 if e == -1:
                     break
-                audio_names.append(value[position + 1:e])
+                audio_names_field.append(value[position + 1:e])
                 position = e
-            # for v in re.findall(regex, value):
-            for v in audio_names:
-                #index = value.find('[sound:')
-                #value = value[index+7:-1]
-                mp = media_path + v[6:]
-                if v[-3:] == 'mp3':
-                    audio = MP3(mp)
-                    length = str(audio.info.length)
-                    time += int(float(length) * 1000)
-                elif v[-3:] == 'wav':
-                    with contextlib.closing(wave.open(mp, 'r')) as f:
-                        frames = f.getnframes()
-                        rate = f.getframerate()
-                        length = frames / float(rate)
-                        time += int(float(length) * 1000)
+            audios.extend(audio_names_field)
+    if mode == 0:
+        audios = audios[:1]
+    # utils.showInfo(str(len(audios)))
+    for v in audios:
+        #index = value.find('[sound:')
+        #value = value[index+7:-1]
+        mp = media_path + v[6:]
+        if v[-3:] == 'mp3':
+            audio = MP3(mp)
+            length = str(audio.info.length)
+            time += int(float(length) * 1000)
+        elif v[-3:] == 'wav':
+            with contextlib.closing(wave.open(mp, 'r')) as f:
+                frames = f.getnframes()
+                rate = f.getframerate()
+                length = frames / float(rate)
+                time += int(float(length) * 1000)
     return time
 
 
@@ -240,6 +245,15 @@ def add_time_question():
 
 def add_time_answer():
     add_time_base(3)
+
+
+def switch_mode():
+    global mode
+    mode = 1 - mode
+    if mode == 0:
+        utils.showInfo("Get time of the first audio.")
+    else:
+        utils.showInfo("Get time of all audios.")
 
 
 def enqueue_output(out, queue):
@@ -438,6 +452,11 @@ mw.form.menuTools.addAction(action)
 action = QAction("Stop automatically flip card", mw)
 action.setShortcut('Ctrl+k')
 action.triggered.connect(stop)
+mw.form.menuTools.addAction(action)
+
+action = QAction("Switch mode", mw)
+action.setShortcut('Ctrl+h')
+action.triggered.connect(switch_mode)
 mw.form.menuTools.addAction(action)
 
 action = QAction("Add additional time", mw)
