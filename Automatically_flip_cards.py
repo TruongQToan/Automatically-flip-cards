@@ -455,7 +455,7 @@ action.triggered.connect(stop)
 mw.form.menuTools.addAction(action)
 
 action = QAction("Switch mode", mw)
-action.setShortcut('Ctrl+h')
+action.setShortcut('Ctrl+y')
 action.triggered.connect(switch_mode)
 mw.form.menuTools.addAction(action)
 
