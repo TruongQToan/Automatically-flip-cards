@@ -30,7 +30,7 @@ import re
 
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
-mode = 1 # 1: add times in all audios, 0: get time in the first audio
+mode = 0 # 1: add times in all audios, 0: get time in the first audio
 stdoutQueue = Queue()
 
 
