@@ -7,6 +7,7 @@ from aqt.utils import getText
 from aqt.reviewer import Reviewer
 import string
 from mutagen.mp3 import MP3
+from mutagen.mp4 import MP4
 from mutagen import contextlib
 import platform
 import wave
@@ -29,7 +30,7 @@ import re
 
 
 audio_speed = 1.0
-regex = r"sound:[^\.\s]*\.(?:mp3|wav)"
+regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
 mode = 0 # 1: add times in all audios, 0: get time in the first audio
 stdoutQueue = Queue()
 
@@ -52,9 +53,15 @@ class TimeKeep(object):
 
 
 def find_audio_fields(card):
+    def check(value):
+        suffixs = ['.mp3', '.m4a', '.wav']
+        res = False
+        for suffix in suffixs:
+            if suffix in value: res = True
+        return res and "[sound:" in value
     TimeKeep.audio_fields = []
     for field, value in card.note().items():
-        if "[sound:" in value and (".mp3" in value or ".wav" in value):
+        if check(value):
             TimeKeep.audio_fields.append(field)
 
 
@@ -86,6 +93,22 @@ def get_times(card, m):
 
 
 def calculate_time(card, media_path, time_fields):
+    def file_length(suffix, mp):
+        if suffix == 'mp3':
+            audio = MP3(mp)
+            length = str(audio.info.length)
+            time = int(float(length) * 1000)
+        elif suffix == 'wav':
+            with contextlib.closing(wave.open(mp, 'r')) as f:
+                frames = f.getnframes()
+                rate = f.getframerate()
+                length = frames / float(rate)
+                time = int(float(length) * 1000)
+        elif suffix == 'm4a':
+            audio = MP4(mp)
+            length = str(audio.info.length)
+            time = int(float(length) * 1000)
+        return time
     time = 0
     audios = []
     for field, value in card.note().items():
@@ -104,21 +127,9 @@ def calculate_time(card, media_path, time_fields):
             audios.extend(audio_names_field)
     if mode == 0:
         audios = audios[:1]
-    # utils.showInfo(str(len(audios)))
     for v in audios:
-        #index = value.find('[sound:')
-        #value = value[index+7:-1]
         mp = media_path + v[6:]
-        if v[-3:] == 'mp3':
-            audio = MP3(mp)
-            length = str(audio.info.length)
-            time += int(float(length) * 1000)
-        elif v[-3:] == 'wav':
-            with contextlib.closing(wave.open(mp, 'r')) as f:
-                frames = f.getnframes()
-                rate = f.getframerate()
-                length = frames / float(rate)
-                time += int(float(length) * 1000)
+        time += file_length(v[-3:], mp)
     return time
 
 
