@@ -18,21 +18,88 @@ from threading import Event
 from threading import Condition
 from threading import Thread
 from threading import Thread
-from mutagen.Queue import Queue, Empty
-from mutagen.Queue import Queue
 from anki.sound import play
 from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
 from anki.sound import MplayerMonitor
 from anki.hooks import addHook, wrap
 from aqt.reviewer import Reviewer
 from aqt.utils import showInfo
+from mutagen.text import Sanitizer
+from mutagen.Queue import Queue, Empty
+from mutagen.Queue import Queue
+from BeautifulSoup import BeautifulSoup
 import re
 
+has_tts = True
+try:
+    from awesometts import router, config, logger
+except:
+    has_tts = False
 
+
+ADDON = os.path.dirname(os.path.abspath(__file__)) \
+    .decode(sys.getfilesystemencoding())  # sqlite (and others?) needs unicode
+
+CACHE = os.path.join(ADDON, 'awesometts', '.cache')
+
+class BeautifulTTS(BeautifulSoup):  # pylint:disable=abstract-method
+    """
+    Provides a customized version of the BeautifulSoup parser that
+    treats TTS tags as nestable.
+    """
+
+    NESTABLE_TAGS = dict(BeautifulSoup.NESTABLE_TAGS.items() +
+                         [('tts', [])])
+
+# global variables
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
 mode = 0 # 1: add times in all audios, 0: get time in the first audio
 stdoutQueue = Queue()
+
+STRIP_TEMPLATE_POSTHTML = [
+    'whitespace',
+    'sounds_univ',
+    'filenames',
+    ('within_parens', 'strip_template_parens'),
+    ('within_brackets', 'strip_template_brackets'),
+    ('within_braces', 'strip_template_braces'),
+    ('char_remove', 'spec_template_strip'),
+    ('counter', 'spec_template_count', 'spec_template_count_wrap'),
+    ('char_ellipsize', 'spec_template_ellipsize'),
+    ('custom_sub', 'sul_template'),
+    'ellipses',
+    'whitespace',
+]
+
+from_template_front=Sanitizer([
+    ('clozes_rendered', 'sub_template_cloze'),
+    'hint_links',
+    ('hint_content', 'otf_remove_hints'),
+    ('newline_ellipsize', 'ellip_template_newlines'),
+    'html',
+] + STRIP_TEMPLATE_POSTHTML, config, logger)
+
+
+from_template_back=Sanitizer([
+    ('clozes_revealed', 'otf_only_revealed_cloze'),
+    'hint_links',
+    ('hint_content', 'otf_remove_hints'),
+    ('newline_ellipsize', 'ellip_template_newlines'),
+    'html',
+] + STRIP_TEMPLATE_POSTHTML, config, logger)
+
+
+RE_LEGACY_TAGS = re.compile(
+    r'\[\s*(\w?)\s*tts\s*:([^\[\]]+)',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+RE_ANSWER_DIVIDER = re.compile(
+    # allows extra whitespace, optional quotes, and optional self-closing
+    r'<\s*hr\s+id\s*=\s*.?\s*answer\s*.?\s*/?\s*>',
+    re.IGNORECASE,
+)
 
 
 class TimeKeep(object):
@@ -92,23 +159,25 @@ def get_times(card, m):
     return question_times, answer_times
 
 
+def file_length(suffix='mp3', mp=''):
+    if suffix == 'mp3':
+        audio = MP3(mp)
+        length = str(audio.info.length)
+        time = int(float(length) * 1000)
+    elif suffix == 'wav':
+        with contextlib.closing(wave.open(mp, 'r')) as f:
+            frames = f.getnframes()
+            rate = f.getframerate()
+            length = frames / float(rate)
+            time = int(float(length) * 1000)
+    elif suffix == 'm4a':
+        audio = MP4(mp)
+        length = str(audio.info.length)
+        time = int(float(length) * 1000)
+    return time
+
+
 def calculate_time(card, media_path, time_fields):
-    def file_length(suffix, mp):
-        if suffix == 'mp3':
-            audio = MP3(mp)
-            length = str(audio.info.length)
-            time = int(float(length) * 1000)
-        elif suffix == 'wav':
-            with contextlib.closing(wave.open(mp, 'r')) as f:
-                frames = f.getnframes()
-                rate = f.getframerate()
-                length = frames / float(rate)
-                time = int(float(length) * 1000)
-        elif suffix == 'm4a':
-            audio = MP4(mp)
-            length = str(audio.info.length)
-            time = int(float(length) * 1000)
-        return time
     time = 0
     audios = []
     for field, value in card.note().items():
@@ -133,6 +202,90 @@ def calculate_time(card, media_path, time_fields):
     return time
 
 
+def get_answer(card):
+    global RE_ANSWER_DIVIDER
+    question_html = card.q()
+    answer_html = RE_ANSWER_DIVIDER.split(
+        card.a().
+        replace(question_html, '').
+        replace(anki.sound.stripSounds(question_html), ''),
+
+        1,  # remove at most one segment in the event of multiple dividers
+    ).pop().strip()
+    # utils.showInfo(answer_html)
+    return answer_html
+
+
+def get_time_tts(card):
+    q = get_time_html('front', card.q())
+    a = get_time_html('back', get_answer(card))
+    return q, a
+
+
+def get_time_html(side, html):
+    global from_template_back, from_template_front
+    assert side in ['front', 'back'], "invalid 'side' passed"
+    from_template = (from_template_back if side == 'back'
+                        else from_template_front)
+    
+    try:
+        tags = BeautifulTTS(html)('tts')
+    except ValueError:
+        if '<tts' in html:
+            utils.showInfo("The TTS cannot be played on this card because "
+                            "the HTML cannot be parsed (is it valid?)")
+        return
+    
+    res = []
+    for tag in tags:
+        # utils.showInfo('tag {}'.format(tag))
+        path = find_html_tag(tag, from_template)
+        if path is not None:
+            # utils.showInfo('path1 = {}'.format(path))
+            res.append(path)
+    # utils.showInfo('res = {}'.format(str(res)))
+    return res
+
+
+def find_html_tag(tag, from_template, show_errors=True):
+    # utils.showInfo('from template {}'.format(str(from_template)))
+    text = from_template(unicode(tag))
+    if not text:
+        return
+    attr = dict(tag.attrs)
+    try:
+        svc_id = attr.pop('service')
+    except KeyError:
+        if show_errors:
+            util.showInfo(
+                "This tag needs a 'service' attribute:\n%s" %
+                tag.prettify().decode('utf-8'),
+                parent,
+            )
+        return
+    return find_tts_path(svc_id=svc_id, text=text, options=attr)
+
+
+def find_tts_path(svc_id, text, options):
+    try:
+        svc_id, service, options = router._validate_service(svc_id, options)
+        text = service['instance'].modify(text)
+        if not text:
+            raise ValueError("Text not usable by " + service['class'].NAME)
+        path = router._validate_path(svc_id, text, options)
+        cache_hit = os.path.exists(path)
+        if not cache_hit:
+            return None
+        elif cache_hit:
+            # utils.showInfo('path = {}'.format(path))
+            return path
+        elif (path in router._failures and 
+            time.time() - router._failures[path][0] < FAILURE_CACHE_SECS):
+            return None
+    except Exception as exception:
+        return None
+
+
 def set_time_limit():
     global audio_speed
     card = mw.reviewer.card
@@ -141,6 +294,10 @@ def set_time_limit():
         model = note.model()
         find_audio_fields(card)
         question_times, answer_times = get_times(card, model)
+        question_time_tts = []
+        answer_time_tts = []
+        if has_tts:
+            question_time_tts, answer_time_tts = get_time_tts(card)
         if platform.system() == 'Windows':
             media_path = mw.col.path.rsplit('\\', 1)[0] + '\\collection.media\\'
         else:
@@ -149,14 +306,22 @@ def set_time_limit():
         time2 = 0
         if len(question_times) > 0:
             time1 = calculate_time(card, media_path, question_times)
-        else:
+        if len(question_time_tts) > 0:
+            for file in question_time_tts:
+                time1 += file_length(mp=file)
+        if time1 == 0:
             time1 = 1500
         if len(answer_times) > 0:
             time2 = calculate_time(card, media_path, answer_times)
-        else:
+        if len(answer_time_tts) > 0:
+            for file in answer_time_tts:
+                time2 += file_length(mp=file)
+        if time2 == 0:
             time2 = 1500
-        TimeKeep.time_limit_question =  time1 + time2 / audio_speed + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
-        TimeKeep.time_limit_answer =  (time2 / audio_speed) * 2 + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_answer * 1000)
+        TimeKeep.time_limit_question =  time1 + time2 / audio_speed + \
+            int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
+        TimeKeep.time_limit_answer =  (time2 / audio_speed) * 2 + int(TimeKeep.addition_time * 1000 + \
+            TimeKeep.addition_time_answer * 1000)
 
 
 def show_answer():
