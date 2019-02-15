@@ -24,15 +24,46 @@ from anki.sound import play
 from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
 from anki.sound import MplayerMonitor
 from anki.hooks import addHook, wrap
-from aqt.reviewer import Reviewer
 from aqt.utils import showInfo
 import re
-
+# from PyQt4 import QtGui
 
 audio_speed = 1.0
 regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
 mode = 0 # 1: add times in all audios, 0: get time in the first audio
 stdoutQueue = Queue()
+
+class CustomMessageBox(QMessageBox):
+
+    def __init__(self, *__args):
+        QMessageBox.__init__(self, parent=mw.app.activeWindow() or mw)
+        self.timeout = 0
+        self.autoclose = False
+        self.currentTime = 0
+
+    def showEvent(self, QShowEvent):
+        self.currentTime = 0
+        if self.autoclose:
+            self.startTimer(1000)
+
+    def timerEvent(self, *args, **kwargs):
+        self.currentTime += 1
+        if self.currentTime >= self.timeout:
+            self.done(0)
+
+    @staticmethod
+    def showWithTimeout(timeoutSeconds, message, title, icon=QMessageBox.Information, buttons=QMessageBox.Ok):
+        w = CustomMessageBox()
+        w.autoclose = True
+        w.timeout = timeoutSeconds
+        w.setText(message)
+        w.setWindowTitle(title)
+        w.setIcon(icon)
+        sg = w.parent().rect()
+        x = sg.width() / 2 - w.pos().x() - w.rect().width()
+        y = sg.height() / 2 - w.pos().y() - w.rect().height()
+        w.move(x, y)
+        w.exec_()
 
 
 class TimeKeep(object):
@@ -193,7 +224,7 @@ def show_question():
 
 def start():
     if TimeKeep.play: return
-    utils.showText("Automatically flip cards: start")
+    CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: start", "Message")
     sound.clearAudioQueue()
     if TimeKeep.add_time:
         set_time_limit()
@@ -211,7 +242,7 @@ def start():
 def stop():
     global audio_speed
     if not TimeKeep.play: return
-    utils.showText("Automatically flip cards: stop")
+    CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: stop", "Message")
     TimeKeep.play = False
     hooks.remHook("showQuestion",show_question)
     if TimeKeep.timer is not None: TimeKeep.timer.stop()
