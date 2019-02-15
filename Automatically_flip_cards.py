@@ -28,10 +28,6 @@ from aqt.utils import showInfo
 import re
 # from PyQt4 import QtGui
 
-audio_speed = 1.0
-regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
-mode = 0 # 1: add times in all audios, 0: get time in the first audio
-stdoutQueue = Queue()
 
 class CustomMessageBox(QMessageBox):
 
@@ -66,7 +62,7 @@ class CustomMessageBox(QMessageBox):
         w.exec_()
 
 
-class TimeKeep(object):
+class Config(object):
     time_limit_question = 0
     time_limit_answer = 0
     addition_time = 0
@@ -77,6 +73,11 @@ class TimeKeep(object):
     timer = None
     is_question = True
     adjust_both = False
+    default_waiting_time = 1500
+    audio_speed = 1.0
+    regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
+    mode = 0 # 1: add times in all audios, 0: get time in the first audio
+    stdoutQueue = Queue()
 
     def __init__(self):
         pass
@@ -158,7 +159,7 @@ def calculate_time(card, media_path, time_fields):
                 audio_names_field.append(value[position + 1:e])
                 position = e
             audios.extend(audio_names_field)
-    if mode == 0:
+    if Config.mode == 0:
         audios = audios[:1]
     for v in audios:
         mp = media_path + v[6:]
@@ -172,10 +173,10 @@ def set_time_limit():
         if len(audio_fields) > 0:
             time = calculate_time(card, media_path, audio_fields)
         if time == 0:
-            time = 1500
+            time = Config.default_waiting_time
         return time
 
-    global audio_speed
+    #global audio_speed
     card = mw.reviewer.card
     if card is not None:
         note = card.note()
@@ -188,21 +189,21 @@ def set_time_limit():
             media_path = mw.col.path.rsplit('/', 1)[0] + '/collection.media/'
         time1 = helper(audio_fields_q)
         time2 = helper(audio_fields_a)
-        TimeKeep.time_limit_question =  time1 + time2 / audio_speed + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_question * 1000) 
-        TimeKeep.time_limit_answer =  (time2 / audio_speed) * 2 + int(TimeKeep.addition_time * 1000 + TimeKeep.addition_time_answer * 1000)
+        Config.time_limit_question =  time1 + time2 / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000) 
+        Config.time_limit_answer =  (time2 / Config.audio_speed) * 2 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
 
 
 def show_answer():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
-        TimeKeep.is_question = False
+        Config.is_question = False
         mw.reviewer._showAnswer()
-    if TimeKeep.play:
-        TimeKeep.timer = mw.progress.timer(TimeKeep.time_limit_answer, change_card, False)
+    if Config.play:
+        Config.timer = mw.progress.timer(Config.time_limit_answer, change_card, False)
 
 
 def change_card():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
-        TimeKeep.is_question = True
+        Config.is_question = True
         mw.reviewer._answerCard(mw.reviewer._defaultEase())
 
 
@@ -218,19 +219,19 @@ def show_question():
     if not check_valid_card():
         return
     set_time_limit()
-    if TimeKeep.play:
-        TimeKeep.timer = mw.progress.timer(TimeKeep.time_limit_question, show_answer, False)
+    if Config.play:
+        Config.timer = mw.progress.timer(Config.time_limit_question, show_answer, False)
 
 
 def start():
-    if TimeKeep.play: return
+    if Config.play: return
     CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: start", "Message")
     sound.clearAudioQueue()
-    if TimeKeep.add_time:
+    if Config.add_time:
         set_time_limit()
-        TimeKeep.add_time = False
+        Config.add_time = False
     hooks.addHook("showQuestion", show_question)
-    TimeKeep.play = True
+    Config.play = True
     if mw.reviewer.state == 'question':
         if check_valid_card():
             show_answer()
@@ -240,18 +241,18 @@ def start():
 
 
 def stop():
-    global audio_speed
-    if not TimeKeep.play: return
+    #global audio_speed
+    if not Config.play: return
     CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: stop", "Message")
-    TimeKeep.play = False
+    Config.play = False
     hooks.remHook("showQuestion",show_question)
-    if TimeKeep.timer is not None: TimeKeep.timer.stop()
-    TimeKeep.timer = None
-    audio_speed = 1.0
+    if Config.timer is not None: Config.timer.stop()
+    Config.timer = None
+    Config.audio_speed = 1.0
 
 
 def add_time_base(t=1):
-    if TimeKeep.play:
+    if Config.play:
         stop()
     if t == 1:
         at = utils.getText("Add additional time for questions and answers")
@@ -263,22 +264,41 @@ def add_time_base(t=1):
         try:
             at = float(at[0])
         except:
-            utils.showInfo('You must enter a positive number!')
+            utils.showInfo('You must enter a positive number between 0 and 20!')
             return
     else:
         return
     if at >= 0 and at <= 20:
         if t == 1:
-            TimeKeep.addition_time = at
+            Config.addition_time = at
             utils.showInfo('Set additional time for questions and answers')
         elif t == 2:
-            TimeKeep.addition_time_question = at
+            Config.addition_time_question = at
             utils.showInfo('Set additional time for questions')
         else:
-            TimeKeep.addition_time_answer = at
+            Config.addition_time_answer = at
             utils.showInfo('Set additional time for answers')
-        TimeKeep.add_time = True
-    else: utils.showInfo('Invalid additional time. Time value must be in the range 0 to 20')
+        Config.add_time = True
+    else:
+        utils.showInfo('Invalid additional time. Time value must be in the range 0 to 20')
+
+
+def change_default_waiting_time():
+    if Config.play:
+        stop()
+    default_waiting_time = utils.getText("Change default waiting time")
+    if default_waiting_time is not None and len(default_waiting_time) > 0:
+        try:
+            default_waiting_time = float(default_waiting_time[0])
+        except:
+            utils.showInfo('You must enter a positive number between 0 and 20!')
+            return
+    else:
+        return
+    if default_waiting_time >= 0 and default_waiting_time <= 20:
+        Config.default_waiting_time = default_waiting_time * 1000
+    else:
+        utils.showInfo('Invalid additional time. Time value must be in the range 0 to 20')
 
 
 def add_time():
@@ -294,9 +314,9 @@ def add_time_answer():
 
 
 def switch_mode():
-    global mode
-    mode = 1 - mode
-    if mode == 0:
+    # global mode
+    Config.mode = 1 - Config.mode
+    if Config.mode == 0:
         utils.showInfo("Get time of the first audio.")
     else:
         utils.showInfo("Get time of all audios.")
@@ -310,29 +330,29 @@ def enqueue_output(out, queue):
 
 def my_keyHandler(self, evt):
     #global messageBuff
-    global audio_speed, audio_replay
+    # global audio_speed, audio_replay
     
     key = unicode(evt.text())
 
     if key == "0":
         audio_speed = 1.0
     elif key == "{":
-        TimeKeep.adjust_both = False
-        audio_speed = max(0.1, audio_speed - 0.1)
+        Config.adjust_both = False
+        Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
     elif key == "}":
-        TimeKeep.adjust_both = False
-        audio_speed = min(4.0, audio_speed + 0.1)
+        Config.adjust_both = False
+        Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
     elif key == "<":
-        TimeKeep.adjust_both = True
-        audio_speed = max(0.1, audio_speed - 0.1)
+        Config.adjust_both = True
+        Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
     elif key == ">":
-        TimeKeep.adjust_both = True
-        audio_speed = min(4.0, audio_speed + 0.1)
+        Config.adjust_both = True
+        Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
     if key in "0\{\}<>":    
-        if anki.sound.mplayerManager is not None and not TimeKeep.is_question:
+        if anki.sound.mplayerManager is not None and not Config.is_question:
             if anki.sound.mplayerManager.mplayer is not None: 
                 anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % audio_speed))
+                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % Config.audio_speed))
     
     if key == "p":
         anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
@@ -350,7 +370,7 @@ def my_keyHandler(self, evt):
             
 def my_runHandler(self):
     #global messageBuff
-    global currentlyPlaying
+    #global currentlyPlaying
     
     self.mplayer = None
     self.deadPlayers = []
@@ -397,15 +417,15 @@ def my_runHandler(self):
                 #self.startProcess()
                 self.mplayer.stdin.write(cmd)
 
-            if TimeKeep.adjust_both and (abs(audio_speed - 1.0) > 0.01 or audio_speed == 1.0):
+            if Config.adjust_both and (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0):
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % audio_speed)
+                self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
                 self.mplayer.stdin.write("seek 0 1\n")
-            elif (abs(audio_speed - 1.0) > 0.01 or audio_speed == 1.0) and not TimeKeep.is_question:
+            elif (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0) and not Config.is_question:
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % audio_speed)
+                self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
                 self.mplayer.stdin.write("seek 0 1\n")
-            elif TimeKeep.is_question:
+            elif Config.is_question:
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
                 self.mplayer.stdin.write("speed_set %f \n" % 1.0)
                 self.mplayer.stdin.write("seek 0 1\n")
@@ -414,7 +434,7 @@ def my_runHandler(self):
             extraOutput = True
             while extraOutput:
                 try:
-                    extraLine = stdoutQueue.get_nowait()
+                    extraLine = Config.stdoutQueue.get_nowait()
                     #messageBuff += "ExtraLine: " + line
                 except Empty:
                     extraOutput = False
@@ -424,7 +444,7 @@ def my_runHandler(self):
             while not finishedPlaying and not anki.sound.mplayerClear:
                 # poll stdout for an 'EOF code' message
                 try:
-                    line = stdoutQueue.get_nowait()
+                    line = Config.stdoutQueue.get_nowait()
                     #messageBuff += line
                 except Empty:
                     # nothing, sleep for a bit
@@ -441,7 +461,7 @@ def my_runHandler(self):
             extraOutput = True
             while extraOutput:
                 try:
-                    extraLine = stdoutQueue.get_nowait()
+                    extraLine = Config.stdoutQueue.get_nowait()
                     #messageBuff += "ExtraLine: " + line
                 except Empty:
                     extraOutput = False
@@ -473,7 +493,7 @@ def my_startProcessHandler(self):
             stdout=subprocess.PIPE, stderr=devnull)
 
         # setup 
-        t = Thread(target=enqueue_output, args=(self.mplayer.stdout, stdoutQueue))
+        t = Thread(target=enqueue_output, args=(self.mplayer.stdout, Config.stdoutQueue))
         t.daemon = True
         t.start()
     except OSError:
@@ -521,6 +541,11 @@ afc.addAction(action)
 action = QAction("Add additional time to answers", mw)
 action.setShortcut('Shift+F')
 action.triggered.connect(add_time_answer)
+afc.addAction(action)
+
+action = QAction("Change default waiting time", mw)
+action.setShortcut("Shift+L")
+action.triggered.connect(change_default_waiting_time)
 afc.addAction(action)
 
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_keyHandler)
