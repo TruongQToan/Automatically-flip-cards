@@ -480,45 +480,48 @@ def my_startProcessHandler(self):
         anki.sound.mplayerEvt.clear()
         raise Exception("Did you install mplayer?")
 
-action = QAction("Automatically flip card", mw)
+
+afc = mw.form.menuTools.addMenu("Automatically flip card")
+
+action = QAction("Start automatically flipping card", mw)
 action.setShortcut('j')
 action.triggered.connect(start)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
-action = QAction("Stop automatically flip card", mw)
+action = QAction("Stop automatically flipping card", mw)
 action.setShortcut('k')
 action.triggered.connect(stop)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
-action = QAction("Automatically flip card", mw)
+action = QAction("Start automatically flipping card", mw)
 action.setShortcut('Ctrl+j')
 action.triggered.connect(start)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
-action = QAction("Stop automatically flip card", mw)
+action = QAction("Stop automatically flipping card", mw)
 action.setShortcut('Ctrl+k')
 action.triggered.connect(stop)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
 action = QAction("Switch mode", mw)
 action.setShortcut('Ctrl+y')
 action.triggered.connect(switch_mode)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
 action = QAction("Add additional time", mw)
 action.setShortcut('Shift+J')
 action.triggered.connect(add_time)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
-action = QAction("Add additional time to question", mw)
+action = QAction("Add additional time to questions", mw)
 action.setShortcut('Shift+D')
 action.triggered.connect(add_time_question)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
-action = QAction("Add additional time to answer", mw)
+action = QAction("Add additional time to answers", mw)
 action.setShortcut('Shift+F')
 action.triggered.connect(add_time_answer)
-mw.form.menuTools.addAction(action)
+afc.addAction(action)
 
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_keyHandler)
 MplayerMonitor.run = my_runHandler
