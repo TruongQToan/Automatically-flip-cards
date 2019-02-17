@@ -147,25 +147,29 @@ def calculate_file_length(suffix, mp):
 def calculate_time(card, media_path, audio_fields):
     time = 0
     audios = []
-    for field, value in card.note().items():
-        if field in audio_fields:
-            position = 0
-            file_names = []
-            while True:
-                position = value.find("[sound:", position)
-                if position == -1:
-                    break
-                e = value.find("]", position)
-                if e == -1:
-                    break
-                file_names.append(value[position + 1:e])
-                position = e
-            audios.extend(file_names)
+    #for field, value in card.note().items():
+    for field in audio_fields:
+        #if field in audio_fields:
+        value = card.note()[field]
+        position = 0
+        file_names = []
+        while True:
+            position = value.find("[sound:", position)
+            if position == -1:
+                break
+            e = value.find("]", position)
+            if e == -1:
+                break
+            file_names.append(value[position + 1:e])
+            position = e
+        audios.extend(file_names)
     if Config.mode == 0:
         audios = audios[:1]
     for v in audios:
         mp = media_path + v[6:]
         time += calculate_file_length(v[-3:], mp)
+    #utils.showInfo(str(time))
+    #utils.showInfo(str(len(audios)))
     return time
 
 
