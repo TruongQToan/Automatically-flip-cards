@@ -121,6 +121,8 @@ def split_audio_fields(card, m, audio_fields):
         a = t.get('afmt')
         question_audio_fields.extend(helper(q))
         answer_audio_fields.extend(helper(a))
+    #utils.showInfo(str(question_audio_fields))
+    #utils.showInfo(str(answer_audio_fields))
     return question_audio_fields, answer_audio_fields
 
 
@@ -142,13 +144,13 @@ def calculate_file_length(suffix, mp):
     return time
 
 
-def calculate_time(card, media_path, time_fields):
+def calculate_time(card, media_path, audio_fields):
     time = 0
     audios = []
     for field, value in card.note().items():
-        if field in time_fields:
+        if field in audio_fields:
             position = 0
-            audio_names_field = []
+            file_names = []
             while True:
                 position = value.find("[sound:", position)
                 if position == -1:
@@ -156,9 +158,9 @@ def calculate_time(card, media_path, time_fields):
                 e = value.find("]", position)
                 if e == -1:
                     break
-                audio_names_field.append(value[position + 1:e])
+                file_names.append(value[position + 1:e])
                 position = e
-            audios.extend(audio_names_field)
+            audios.extend(file_names)
     if Config.mode == 0:
         audios = audios[:1]
     for v in audios:
@@ -189,8 +191,8 @@ def set_time_limit():
             media_path = mw.col.path.rsplit('/', 1)[0] + '/collection.media/'
         time1 = helper(audio_fields_q)
         time2 = helper(audio_fields_a)
-        Config.time_limit_question =  time1 + time2 / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000) 
-        Config.time_limit_answer =  (time2 / Config.audio_speed) * 2 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
+        Config.time_limit_question = time1 + time2 / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000) 
+        Config.time_limit_answer = (time2 / Config.audio_speed) * 2 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
 
 
 def show_answer():
@@ -314,12 +316,11 @@ def add_time_answer():
 
 
 def switch_mode():
-    # global mode
     Config.mode = 1 - Config.mode
-    if Config.mode == 0:
-        utils.showInfo("Get time of the first audio.")
+    if Config.mode == 1:
+        CustomMessageBox.showWithTimeout(0.5, "Get time of all audios", "Message")
     else:
-        utils.showInfo("Get time of all audios.")
+        CustomMessageBox.showWithTimeout(0.5, "Only get time of the first audio", "Message")
 
 
 def enqueue_output(out, queue):
