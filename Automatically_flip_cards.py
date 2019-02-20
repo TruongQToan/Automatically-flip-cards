@@ -78,6 +78,7 @@ class Config(object):
     regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
     mode = 0 # 1: add times in all audios, 0: get time in the first audio
     stdoutQueue = Queue()
+    show_notif = False
 
     def __init__(self):
         pass
@@ -231,7 +232,8 @@ def show_question():
 
 def start():
     if Config.play: return
-    CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: start", "Message")
+    if Config.show_notif:
+        CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: start", "Message")
     sound.clearAudioQueue()
     if Config.add_time:
         set_time_limit()
@@ -249,7 +251,8 @@ def start():
 def stop():
     #global audio_speed
     if not Config.play: return
-    CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: stop", "Message")
+    if Config.show_notif:
+        CustomMessageBox.showWithTimeout(0.5, "Automatically flip cards: stop", "Message")
     Config.play = False
     hooks.remHook("showQuestion",show_question)
     if Config.timer is not None: Config.timer.stop()
@@ -487,6 +490,10 @@ def my_runHandler(self):
         self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
 
 
+def toggle_show_notification():
+    Config.show_notif = not Config.show_notif
+
+
 def my_startProcessHandler(self):
     try:
         cmd = anki.sound.mplayerCmd + ["-slave", "-idle", '-msglevel', 'all=0:global=6']
@@ -551,6 +558,10 @@ afc.addAction(action)
 action = QAction("Change default waiting time", mw)
 action.setShortcut("Shift+L")
 action.triggered.connect(change_default_waiting_time)
+afc.addAction(action)
+
+action = QAction("Toggle show notification", mw)
+action.triggered.connect(toggle_show_notification)
 afc.addAction(action)
 
 Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_keyHandler)
