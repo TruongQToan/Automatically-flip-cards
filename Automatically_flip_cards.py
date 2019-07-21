@@ -6,9 +6,9 @@ import time
 from aqt.utils import getText
 from aqt.reviewer import Reviewer
 import string
-from mutagen.mp3 import MP3
-from mutagen.mp4 import MP4
-from mutagen import contextlib
+from .mutagen.mp3 import MP3
+from .mutagen.mp4 import MP4
+from .mutagen import contextlib
 import platform
 import wave
 import time
@@ -18,8 +18,8 @@ from threading import Event
 from threading import Condition
 from threading import Thread
 from threading import Thread
-from mutagen.Queue import Queue, Empty
-from mutagen.Queue import Queue
+from .mutagen.Queue import Queue, Empty
+from .mutagen.Queue import Queue
 from anki.sound import play
 from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
 from anki.sound import MplayerMonitor
@@ -203,6 +203,8 @@ def set_time_limit():
 def show_answer():
     if mw.reviewer and mw.col and mw.reviewer.card and mw.state == 'review':
         Config.is_question = False
+        if mw.reviewer.typedAnswer == None:
+            mw.reviewer.typedAnswer = ""
         mw.reviewer._showAnswer()
     if Config.play:
         Config.timer = mw.progress.timer(Config.time_limit_answer, change_card, False)
@@ -564,6 +566,3 @@ action = QAction("Toggle show notification", mw)
 action.triggered.connect(toggle_show_notification)
 afc.addAction(action)
 
-Reviewer._keyHandler = wrap(Reviewer._keyHandler, my_keyHandler)
-MplayerMonitor.run = my_runHandler
-MplayerMonitor.startProcess = my_startProcessHandler
