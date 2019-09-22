@@ -30,28 +30,28 @@ import re
 
 
 class CustomMessageBox(QMessageBox):
-
+    
     def __init__(self, *__args):
         QMessageBox.__init__(self, parent=mw.app.activeWindow() or mw)
         self.timeout = 0
         self.autoclose = False
         self.currentTime = 0
-
+    
     def showEvent(self, QShowEvent):
         self.currentTime = 0
         if self.autoclose:
             self.startTimer(1000)
 
-    def timerEvent(self, *args, **kwargs):
-        self.currentTime += 1
+def timerEvent(self, *args, **kwargs):
+    self.currentTime += 1
         if self.currentTime >= self.timeout:
             self.done(0)
-
-    @staticmethod
-    def showWithTimeout(timeoutSeconds, message, title, icon=QMessageBox.Information, buttons=QMessageBox.Ok):
-        w = CustomMessageBox()
-        w.autoclose = True
-        w.timeout = timeoutSeconds
+                
+                @staticmethod
+                    def showWithTimeout(timeoutSeconds, message, title, icon=QMessageBox.Information, buttons=QMessageBox.Ok):
+w = CustomMessageBox()
+w.autoclose = True
+    w.timeout = timeoutSeconds
         w.setText(message)
         w.setWindowTitle(title)
         w.setIcon(icon)
@@ -66,20 +66,20 @@ class Config(object):
     time_limit_question = 0
     time_limit_answer = 0
     addition_time = 0
-    addition_time_question = 0
-    addition_time_answer = 0
+    addition_time_question = 0.5
+    addition_time_answer = 0.5
     add_time = True
     play = False
     timer = None
     is_question = True
     adjust_both = False
-    default_waiting_time = 1500
+    default_waiting_time = 0
     audio_speed = 1.0
     regex = r"sound:[^\.\s]*\.(?:mp3|wav|m4a)"
-    mode = 0 # 1: add times in all audios, 0: get time in the first audio
+    mode = 1 # 1: add times in all audios, 0: get time in the first audio
     stdoutQueue = Queue()
-    show_notif = False
-
+    show_notif = True
+    
     def __init__(self):
         pass
 
@@ -91,7 +91,7 @@ def find_audio_fields(card):
         for suffix in suffixs:
             if suffix in value: res = True
         return res and "[sound:" in value
-
+    
     audio_fields = []
     for field, value in card.note().items():
         if check(value):
@@ -113,7 +113,7 @@ def split_audio_fields(card, m, audio_fields):
                 start = e + 2
             else: break
         return q_times
-
+    
     question_audio_fields = []
     answer_audio_fields = []
     if card is not None:
@@ -182,7 +182,7 @@ def set_time_limit():
         if time == 0:
             time = Config.default_waiting_time
         return time
-
+    
     #global audio_speed
     card = mw.reviewer.card
     if card is not None:
@@ -196,8 +196,10 @@ def set_time_limit():
             media_path = mw.col.path.rsplit('/', 1)[0] + '/collection.media/'
         time1 = helper(audio_fields_q)
         time2 = helper(audio_fields_a)
-        Config.time_limit_question = time1 + time2 / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000) 
-        Config.time_limit_answer = (time2 / Config.audio_speed) * 2 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
+        # Config.time_limit_question = time1 + time2 / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000)
+        # Config.time_limit_answer = (time2 / Config.audio_speed) * 2 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
+        Config.time_limit_question = (time1 ) / Config.audio_speed + int(Config.addition_time * 1000 + Config.addition_time_question * 1000)
+        Config.time_limit_answer = (time2 / Config.audio_speed) * 1 + int(Config.addition_time * 1000 + Config.addition_time_answer * 1000)
 
 
 def show_answer():
@@ -343,7 +345,7 @@ def my_keyHandler(self, evt):
     # global audio_speed, audio_replay
     
     key = unicode(evt.text())
-
+    
     if key == "0":
         audio_speed = 1.0
     elif key == "{":
@@ -358,26 +360,26 @@ def my_keyHandler(self, evt):
     elif key == ">":
         Config.adjust_both = True
         Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
-    if key in "0\{\}<>":    
+    if key in "0\{\}<>":
         if anki.sound.mplayerManager is not None and not Config.is_question:
-            if anki.sound.mplayerManager.mplayer is not None: 
+            if anki.sound.mplayerManager.mplayer is not None:
                 anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
                 anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % Config.audio_speed))
-    
-    if key == "p":
-        anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
+
+if key == "p":
+    anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
     if key == "r":
         anki.sound.mplayerClear = True
 
 
-    # Clear Message Buffer (for debugging)
-    #if key == "8":
-    #    messageBuff = ""
-    
-    # Show Message Buffer (for debugging)
-    #if key == "9":
-    #    sys.stderr.write(messageBuff)
-            
+# Clear Message Buffer (for debugging)
+#if key == "8":
+#    messageBuff = ""
+
+# Show Message Buffer (for debugging)
+#if key == "9":
+#    sys.stderr.write(messageBuff)
+
 def my_runHandler(self):
     #global messageBuff
     #global currentlyPlaying
@@ -396,17 +398,17 @@ def my_runHandler(self):
                 # mplayer quit by user (likely video)
                 self.deadPlayers.append(self.mplayer)
                 self.mplayer = None
-        
+    
         # loop through files to play
         while anki.sound.mplayerQueue:
             # ensure started
             if not self.mplayer:
                 my_startProcessHandler(self)
-                #self.startProcess()
-                
+            #self.startProcess()
+            
             # pop a file
             try:
-                item = anki.sound.mplayerQueue.pop(0)      
+                item = anki.sound.mplayerQueue.pop(0)
             except IndexError:
                 # queue was cleared by main thread
                 continue
@@ -419,14 +421,14 @@ def my_runHandler(self):
             
             try:
                 self.mplayer.stdin.write(cmd)
-            except:
-                # mplayer has quit and needs restarting
-                self.deadPlayers.append(self.mplayer)
-                self.mplayer = None
-                my_startProcessHandler(self)
-                #self.startProcess()
-                self.mplayer.stdin.write(cmd)
-
+except:
+    # mplayer has quit and needs restarting
+    self.deadPlayers.append(self.mplayer)
+    self.mplayer = None
+        my_startProcessHandler(self)
+        #self.startProcess()
+            self.mplayer.stdin.write(cmd)
+            
             if Config.adjust_both and (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0):
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
                 self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
@@ -435,27 +437,27 @@ def my_runHandler(self):
                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
                 self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
                 self.mplayer.stdin.write("seek 0 1\n")
-            elif Config.is_question:
-                self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % 1.0)
-                self.mplayer.stdin.write("seek 0 1\n")
-
+        elif Config.is_question:
+            self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+            self.mplayer.stdin.write("speed_set %f \n" % 1.0)
+            self.mplayer.stdin.write("seek 0 1\n")
+            
             # Clear out rest of queue
             extraOutput = True
             while extraOutput:
                 try:
                     extraLine = Config.stdoutQueue.get_nowait()
-                    #messageBuff += "ExtraLine: " + line
+                #messageBuff += "ExtraLine: " + line
                 except Empty:
                     extraOutput = False
-            
-            # Wait until the file finished playing before adding the next file
-            finishedPlaying = False
+        
+        # Wait until the file finished playing before adding the next file
+        finishedPlaying = False
             while not finishedPlaying and not anki.sound.mplayerClear:
                 # poll stdout for an 'EOF code' message
                 try:
                     line = Config.stdoutQueue.get_nowait()
-                    #messageBuff += line
+                #messageBuff += line
                 except Empty:
                     # nothing, sleep for a bit
                     finishedPlaying = False
@@ -466,30 +468,30 @@ def my_runHandler(self):
                     lineParts = line.split(':')
                     if lineParts[0] == 'EOF code':
                         finishedPlaying = True
-            
-            # Clear out rest of queue
-            extraOutput = True
+
+        # Clear out rest of queue
+        extraOutput = True
             while extraOutput:
                 try:
                     extraLine = Config.stdoutQueue.get_nowait()
-                    #messageBuff += "ExtraLine: " + line
+                #messageBuff += "ExtraLine: " + line
                 except Empty:
                     extraOutput = False
-            
-        # if we feed mplayer too fast it loses files
-        time.sleep(0.1)
-        # end adding to queue
-                
-        # wait() on finished processes. we don't want to block on the
-        # wait, so we keep trying each time we're reactivated
-        def clean(pl):
-            if pl.poll() is not None:
-                pl.wait()
-                return False
+
+# if we feed mplayer too fast it loses files
+time.sleep(0.1)
+# end adding to queue
+
+# wait() on finished processes. we don't want to block on the
+# wait, so we keep trying each time we're reactivated
+def clean(pl):
+    if pl.poll() is not None:
+        pl.wait()
+        return False
             else:
                 showInfo("Clean")
                 return True
-        self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
+    self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
 
 
 def toggle_show_notification():
@@ -503,16 +505,72 @@ def my_startProcessHandler(self):
         
         # open up stdout PIPE to check when files are done playing
         self.mplayer = subprocess.Popen(
-            cmd, startupinfo=anki.sound.si, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=devnull)
-
-        # setup 
-        t = Thread(target=enqueue_output, args=(self.mplayer.stdout, Config.stdoutQueue))
-        t.daemon = True
-        t.start()
+                                        cmd, startupinfo=anki.sound.si, stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE, stderr=devnull)
+            
+                                        # setup
+                                        t = Thread(target=enqueue_output, args=(self.mplayer.stdout, Config.stdoutQueue))
+                                        t.daemon = True
+                                        t.start()
     except OSError:
         anki.sound.mplayerEvt.clear()
         raise Exception("Did you install mplayer?")
+
+def my_keyHandler_for_player(key):
+    # key = Config.input_key
+    if key == "[":
+        Config.adjust_both = True
+        Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
+    elif key == "]":
+        Config.adjust_both = True
+        Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
+
+    if platform.system() == 'Windows':
+        if key in "[]":
+            if anki.sound.mplayerManager is not None:
+                if anki.sound.mplayerManager.mplayer is not None:
+                    anki.sound.mplayerManager.mplayer.stdin.write(b"af_add scaletempo=stride=10:overlap=0.8\n")
+                    anki.sound.mplayerManager.mplayer.stdin.write((b"speed_set %f \n" % Config.audio_speed))
+
+if key == "p":
+    anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
+    else:
+        if anki.sound.mpvManager is not None:
+            if anki.sound.mpvManager.command is not None:
+                if key in "[]":
+                    anki.sound.mpvManager.set_property("speed", Config.audio_speed)
+                if key == "p":
+                    anki.sound.mpvManager.command ("keypress", key)
+
+def decrease_audio_speed():
+    Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
+    apply_audio_speed()
+
+def increase_audio_speed():
+    Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
+    apply_audio_speed()
+
+def apply_audio_speed():
+    if platform.system() == 'Windows':
+        if anki.sound.mplayerManager is not None:
+            if anki.sound.mplayerManager.mplayer is not None:
+                anki.sound.mplayerManager.mplayer.stdin.write(b"af_add scaletempo=stride=10:overlap=0.8\n")
+                anki.sound.mplayerManager.mplayer.stdin.write((b"speed_set %f \n" % Config.audio_speed))
+    else:
+        if anki.sound.mpvManager is not None:
+            if anki.sound.mpvManager.command is not None:
+                anki.sound.mpvManager.set_property("speed", Config.audio_speed)
+
+def audio_pause():
+    if platform.system() == 'Windows':
+        if anki.sound.mplayerManager is not None:
+            if anki.sound.mplayerManager.mplayer is not None:
+                anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
+    else:
+        key = "p"
+        if anki.sound.mpvManager is not None:
+            if anki.sound.mpvManager.command is not None:
+                anki.sound.mpvManager.command ("keypress", key)
 
 
 afc = mw.form.menuTools.addMenu("Automatically flip card")
@@ -564,5 +622,20 @@ afc.addAction(action)
 
 action = QAction("Toggle show notification", mw)
 action.triggered.connect(toggle_show_notification)
+afc.addAction(action)
+
+action = QAction("Decrease audio speed", mw)
+action.setShortcut("[")
+action.triggered.connect(decrease_audio_speed)
+afc.addAction(action)
+#
+action = QAction("Increase audio speed", mw)
+action.setShortcut("]")
+action.triggered.connect(increase_audio_speed)
+afc.addAction(action)
+#
+action = QAction("Pause audio play", mw)
+action.setShortcut("p")
+action.triggered.connect(audio_pause)
 afc.addAction(action)
 
