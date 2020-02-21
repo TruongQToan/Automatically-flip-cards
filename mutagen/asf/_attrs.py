@@ -10,8 +10,8 @@
 import sys
 import struct
 
-from mutagen._compat import swap_to_string, text_type, PY2, reraise
-from mutagen._util import total_ordering
+from ._compat import swap_to_string, text_type, PY2, reraise
+from ._util import total_ordering
 
 from ._util import ASFError
 

@@ -19,8 +19,8 @@ __all__ = ["TrueAudio", "Open", "delete", "EasyTrueAudio"]
 
 from ._compat import endswith
 from mutagen import StreamInfo
-from mutagen.id3 import ID3FileType, delete
-from mutagen._util import cdata, MutagenError, convert_error
+from .id3 import ID3FileType, delete
+from ._util import cdata, MutagenError, convert_error
 
 
 class error(MutagenError):
@@ -54,7 +54,7 @@ class TrueAudioInfo(StreamInfo):
         self.length = float(samples) / self.sample_rate
 
     def pprint(self):
-        return u"True Audio, %.2f seconds, %d Hz." % (
+        return "True Audio, %.2f seconds, %d Hz." % (
             self.length, self.sample_rate)
 
 
@@ -65,11 +65,11 @@ class TrueAudio(ID3FileType):
 
     Arguments:
         filething (filething)
-        ID3 (mutagen.id3.ID3)
+        ID3 (.id3.ID3)
 
     Attributes:
         info (`TrueAudioInfo`)
-        tags (`mutagen.id3.ID3`)
+        tags (`.id3.ID3`)
     """
 
     _Info = TrueAudioInfo
@@ -91,12 +91,12 @@ class EasyTrueAudio(TrueAudio):
 
     Arguments:
         filething (filething)
-        ID3 (mutagen.id3.ID3)
+        ID3 (.id3.ID3)
 
     Attributes:
         info (`TrueAudioInfo`)
-        tags (`mutagen.easyid3.EasyID3`)
+        tags (`.easyid3.EasyID3`)
     """
 
-    from mutagen.easyid3 import EasyID3 as ID3
+    from .easyid3 import EasyID3 as ID3
     ID3 = ID3

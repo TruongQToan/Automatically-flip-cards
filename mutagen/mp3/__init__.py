@@ -10,12 +10,12 @@
 
 import struct
 
-from mutagen import StreamInfo
-from mutagen._util import MutagenError, enum, BitReader, BitReaderError, \
+from .. import StreamInfo
+from .._util import MutagenError, enum, BitReader, BitReaderError, \
     convert_error, intround
-from mutagen._compat import endswith, xrange
-from mutagen.id3 import ID3FileType, delete
-from mutagen.id3._util import BitPaddedInt
+from .._compat import endswith, xrange
+from ..id3 import ID3FileType, delete
+from ..id3._util import BitPaddedInt
 
 from ._util import XingHeader, XingHeaderError, VBRIHeader, VBRIHeaderError
 
@@ -75,7 +75,7 @@ def _guess_xing_bitrate_mode(xing):
 
 
 # Mode values.
-STEREO, JOINTSTEREO, DUALCHANNEL, MONO = xrange(4)
+STEREO, JOINTSTEREO, DUALCHANNEL, MONO = range(4)
 
 
 class MPEGFrame(object):
@@ -95,7 +95,7 @@ class MPEGFrame(object):
     }
 
     __BITRATE[(2, 3)] = __BITRATE[(2, 2)]
-    for i in xrange(1, 4):
+    for i in range(1, 4):
         __BITRATE[(2.5, i)] = __BITRATE[(2, i)]
 
     # Map version to sample rates.
@@ -203,7 +203,7 @@ class MPEGFrame(object):
                     samples = 0
                 self.length = float(samples) / self.sample_rate
             if xing.lame_version_desc:
-                self.encoder_info = u"LAME %s" % xing.lame_version_desc
+                self.encoder_info = "LAME %s" % xing.lame_version_desc
             if lame is not None:
                 self.track_gain = lame.track_gain_adjustment
                 self.track_peak = lame.track_peak
@@ -219,7 +219,7 @@ class MPEGFrame(object):
             pass
         else:
             self.bitrate_mode = BitrateMode.VBR
-            self.encoder_info = u"FhG"
+            self.encoder_info = "FhG"
             self.sketchy = False
             self.length = float(frame_size * vbri.frames) / self.sample_rate
             if self.length:
@@ -307,11 +307,11 @@ class MPEGInfo(StreamInfo):
             In case :attr:`bitrate_mode` is :attr:`BitrateMode.UNKNOWN` the
             bitrate is guessed based on the first frame.
         sample_rate (`int`) audio sample rate, in Hz
-        encoder_info (`mutagen.text`): a string containing encoder name and
+        encoder_info (`.text`): a string containing encoder name and
             possibly version. In case a lame tag is present this will start
             with ``"LAME "``, if unknown it is empty, otherwise the
             text format is undefined.
-        encoder_settings (`mutagen.text`): a string containing a guess about
+        encoder_settings (`.text`): a string containing a guess about
             the settings used for encoding. The format is undefined and
             depends on the encoder.
         bitrate_mode (`BitrateMode`): a :class:`BitrateMode`
@@ -330,8 +330,8 @@ class MPEGInfo(StreamInfo):
     """
 
     sketchy = False
-    encoder_info = u""
-    encoder_settings = u""
+    encoder_info = ""
+    encoder_settings = ""
     bitrate_mode = BitrateMode.UNKNOWN
     track_gain = track_peak = album_gain = album_peak = None
 
@@ -370,7 +370,7 @@ class MPEGInfo(StreamInfo):
             if max_syncs <= 0:
                 break
 
-            for _ in xrange(enough_frames):
+            for _ in range(enough_frames):
                 try:
                     frame = MPEGFrame(fileobj)
                 except HeaderNotFoundError:
@@ -418,16 +418,16 @@ class MPEGInfo(StreamInfo):
     def pprint(self):
         info = str(self.bitrate_mode).split(".", 1)[-1]
         if self.bitrate_mode == BitrateMode.UNKNOWN:
-            info = u"CBR?"
+            info = "CBR?"
         if self.encoder_info:
             info += ", %s" % self.encoder_info
         if self.encoder_settings:
             info += ", %s" % self.encoder_settings
-        s = u"MPEG %s layer %d, %d bps (%s), %s Hz, %d chn, %.2f seconds" % (
+        s = "MPEG %s layer %d, %d bps (%s), %s Hz, %d chn, %.2f seconds" % (
             self.version, self.layer, self.bitrate, info,
             self.sample_rate, self.channels, self.length)
         if self.sketchy:
-            s += u" (sketchy)"
+            s += " (sketchy)"
         return s
 
 
@@ -441,7 +441,7 @@ class MP3(ID3FileType):
 
     Attributes:
         info (`MPEGInfo`)
-        tags (`mutagen.id3.ID3`)
+        tags (`.id3.ID3`)
     """
 
     _Info = MPEGInfo
@@ -476,8 +476,8 @@ class EasyMP3(MP3):
 
     Attributes:
         info (`MPEGInfo`)
-        tags (`mutagen.easyid3.EasyID3`)
+        tags (`.easyid3.EasyID3`)
     """
 
-    from mutagen.easyid3 import EasyID3 as ID3
+    from ..easyid3 import EasyID3 as ID3
     ID3 = ID3

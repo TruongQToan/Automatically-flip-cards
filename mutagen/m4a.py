@@ -7,8 +7,8 @@
 # (at your option) any later version.
 
 """
-since 1.9: mutagen.m4a is deprecated; use mutagen.mp4 instead.
-since 1.31: mutagen.m4a will no longer work; any operation that could fail
+since 1.9: .m4a is deprecated; use .mp4 instead.
+since 1.31: .m4a will no longer work; any operation that could fail
             will fail now.
 """
 
@@ -18,7 +18,7 @@ from mutagen import FileType, Tags, StreamInfo
 from ._util import DictProxy, MutagenError, loadfile
 
 warnings.warn(
-    "mutagen.m4a is deprecated; use mutagen.mp4 instead.",
+    ".m4a is deprecated; use .mp4 instead.",
     DeprecationWarning)
 
 
@@ -66,7 +66,7 @@ class M4ATags(DictProxy, Tags):
         raise error("deprecated")
 
     def pprint(self):
-        return u""
+        return ""
 
 
 class M4AInfo(StreamInfo):
@@ -77,7 +77,7 @@ class M4AInfo(StreamInfo):
         raise error("deprecated")
 
     def pprint(self):
-        return u""
+        return ""
 
 
 class M4A(FileType):

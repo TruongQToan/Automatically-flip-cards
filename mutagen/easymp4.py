@@ -7,8 +7,8 @@
 # (at your option) any later version.
 
 from mutagen import Tags
-from mutagen._util import DictMixin, dict_match
-from mutagen.mp4 import MP4, MP4Tags, error, delete
+from ._util import DictMixin, dict_match
+from .mp4 import MP4, MP4Tags, error, delete
 from ._compat import PY2, text_type, PY3
 
 
@@ -121,7 +121,7 @@ class EasyMP4Tags(DictMixin, Tags):
             ret = []
             for (track, total) in tags[atomid]:
                 if total:
-                    ret.append(u"%d/%d" % (track, total))
+                    ret.append("%d/%d" % (track, total))
                 else:
                     ret.append(text_type(track))
             return ret
@@ -188,7 +188,7 @@ class EasyMP4Tags(DictMixin, Tags):
         key = key.lower()
 
         if PY2:
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 value = [value]
         else:
             if isinstance(value, text_type):
@@ -210,7 +210,7 @@ class EasyMP4Tags(DictMixin, Tags):
 
     def keys(self):
         keys = []
-        for key in self.Get.keys():
+        for key in list(self.Get.keys()):
             if key in self.List:
                 keys.extend(self.List[key](self.__mp4, key))
             elif key in self:
@@ -226,7 +226,7 @@ class EasyMP4Tags(DictMixin, Tags):
                 strings.append("%s=%s" % (key, value))
         return "\n".join(strings)
 
-for atomid, key in {
+for atomid, key in list({
     '\xa9nam': 'title',
     '\xa9alb': 'album',
     '\xa9ART': 'artist',
@@ -242,10 +242,10 @@ for atomid, key in {
     'soar': 'artistsort',
     'sonm': 'titlesort',
     'soco': 'composersort',
-}.items():
+}.items()):
     EasyMP4Tags.RegisterTextKey(key, atomid)
 
-for name, key in {
+for name, key in list({
     'MusicBrainz Artist Id': 'musicbrainz_artistid',
     'MusicBrainz Track Id': 'musicbrainz_trackid',
     'MusicBrainz Album Id': 'musicbrainz_albumid',
@@ -254,29 +254,29 @@ for name, key in {
     'MusicBrainz Album Status': 'musicbrainz_albumstatus',
     'MusicBrainz Album Type': 'musicbrainz_albumtype',
     'MusicBrainz Release Country': 'releasecountry',
-}.items():
+}.items()):
     EasyMP4Tags.RegisterFreeformKey(key, name)
 
-for name, key in {
+for name, key in list({
     "tmpo": "bpm",
-}.items():
+}.items()):
     EasyMP4Tags.RegisterIntKey(key, name)
 
-for name, key in {
+for name, key in list({
     "trkn": "tracknumber",
     "disk": "discnumber",
-}.items():
+}.items()):
     EasyMP4Tags.RegisterIntPairKey(key, name)
 
 
 class EasyMP4(MP4):
     """EasyMP4(filelike)
 
-    Like :class:`MP4 <mutagen.mp4.MP4>`, but uses :class:`EasyMP4Tags` for
+    Like :class:`MP4 <.mp4.MP4>`, but uses :class:`EasyMP4Tags` for
     tags.
 
     Attributes:
-        info (`mutagen.mp4.MP4Info`)
+        info (`.mp4.MP4Info`)
         tags (`EasyMP4Tags`)
     """
 

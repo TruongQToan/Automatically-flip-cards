@@ -19,10 +19,10 @@ __all__ = ["OggTheora", "Open", "delete"]
 import struct
 
 from mutagen import StreamInfo
-from mutagen._vorbis import VCommentDict
-from mutagen._util import cdata, get_size, loadfile, convert_error
-from mutagen._tags import PaddingInfo
-from mutagen.ogg import OggPage, OggFileType, error as OggError
+from ._vorbis import VCommentDict
+from ._util import cdata, get_size, loadfile, convert_error
+from ._tags import PaddingInfo
+from .ogg import OggPage, OggFileType, error as OggError
 
 
 class error(OggError):
@@ -76,7 +76,7 @@ class OggTheoraInfo(StreamInfo):
         self.length = frames / float(self.fps)
 
     def pprint(self):
-        return u"Ogg Theora, %.2f seconds, %d bps" % (self.length,
+        return "Ogg Theora, %.2f seconds, %d bps" % (self.length,
                                                       self.bitrate)
 
 
@@ -134,7 +134,7 @@ class OggTheora(OggFileType):
 
     Attributes:
         info (`OggTheoraInfo`)
-        tags (`mutagen._vorbis.VCommentDict`)
+        tags (`._vorbis.VCommentDict`)
     """
 
     _Info = OggTheoraInfo
@@ -162,7 +162,7 @@ def delete(filething):
     Arguments:
         filething (filething)
     Raises:
-        mutagen.MutagenError
+        .MutagenError
 
     Remove tags from a file.
     """

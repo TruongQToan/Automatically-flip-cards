@@ -6,10 +6,10 @@
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
 
-from mutagen._compat import cBytesIO, xrange
-from mutagen.aac import ProgramConfigElement
-from mutagen._util import BitReader, BitReaderError, cdata
-from mutagen._compat import text_type
+from .._compat import cBytesIO, xrange
+from ..aac import ProgramConfigElement
+from .._util import BitReader, BitReaderError, cdata
+from .._compat import text_type
 from ._util import parse_full_atom
 from ._atom import Atom, AtomError
 
@@ -211,7 +211,7 @@ class BaseDescriptor(object):
         """May raise ValueError"""
 
         value = 0
-        for i in xrange(4):
+        for i in range(4):
             try:
                 b = cdata.uint8(fileobj.read(1))
             except cdata.error as e:
@@ -318,10 +318,10 @@ class DecoderConfigDescriptor(BaseDescriptor):
     def codec_param(self):
         """string"""
 
-        param = u".%X" % self.objectTypeIndication
+        param = ".%X" % self.objectTypeIndication
         info = self.decSpecificInfo
         if info is not None:
-            param += u".%d" % info.audioObjectType
+            param += ".%d" % info.audioObjectType
         return param
 
     @property

@@ -23,7 +23,7 @@ will not interpret the / characters as a separator, and will almost
 always accept null separators to generate multi-valued text frames.
 
 Because ID3 frame structure differs between frame types, each frame is
-implemented as a different class (e.g. TIT2 as mutagen.id3.TIT2). Each
+implemented as a different class (e.g. TIT2 as .id3.TIT2). Each
 frame's documentation contains a list of its attributes.
 
 Since this file's documentation is a little unwieldy, you are probably

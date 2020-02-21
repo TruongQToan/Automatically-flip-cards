@@ -28,20 +28,20 @@ PY3 = not PY2
 
 
 if PY2:
-    from urlparse import urlparse, urlunparse
+    from urllib.parse import urlparse, urlunparse
     urlparse, urlunparse
-    from urllib import quote, unquote
+    from urllib.parse import quote, unquote
     quote, unquote
 
-    from StringIO import StringIO
+    from io import StringIO
     BytesIO = StringIO
     from io import StringIO as TextIO
     TextIO
 
-    string_types = (str, unicode)
-    text_type = unicode
+    string_types = (str, str)
+    text_type = str
 
-    iteritems = lambda d: d.iteritems()
+    iteritems = lambda d: iter(d.items())
 elif PY3:
     from urllib.parse import urlparse, quote, unquote, urlunparse
     urlparse, quote, unquote, urlunparse
@@ -55,4 +55,4 @@ elif PY3:
     string_types = (str,)
     text_type = str
 
-    iteritems = lambda d: iter(d.items())
+    iteritems = lambda d: iter(list(d.items()))

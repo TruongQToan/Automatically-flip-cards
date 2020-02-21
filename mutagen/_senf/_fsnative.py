@@ -66,7 +66,7 @@ def _codec_fails_on_encode_surrogates(codec, _cache={}):
         return _cache[codec]
     except KeyError:
         try:
-            u"\uD800\uDC01".encode(codec)
+            "\uD800\uDC01".encode(codec)
         except UnicodeEncodeError:
             _cache[codec] = True
         else:
@@ -83,7 +83,7 @@ def _codec_can_decode_with_surrogatepass(codec, _cache={}):
         return _cache[codec]
     except KeyError:
         try:
-            u"\ud83d".encode(
+            "\ud83d".encode(
                 codec, _surrogatepass).decode(codec, _surrogatepass)
         except UnicodeDecodeError:
             _cache[codec] = False
@@ -215,14 +215,14 @@ def _fsnative(text):
             path = text.encode("utf-8", _surrogatepass)
 
         if b"\x00" in path:
-            path = path.replace(b"\x00", fsn2bytes(_fsnative(u"\uFFFD"), None))
+            path = path.replace(b"\x00", fsn2bytes(_fsnative("\uFFFD"), None))
 
         if PY3:
             return path.decode(_encoding, "surrogateescape")
         return path
     else:
-        if u"\x00" in text:
-            text = text.replace(u"\x00", u"\uFFFD")
+        if "\x00" in text:
+            text = text.replace("\x00", "\uFFFD")
         text = fsn2norm(text)
         return text
 
@@ -278,7 +278,7 @@ def _create_fsnative(type_):
         the `str` only contains ASCII and no NULL.
         """
 
-        def __new__(cls, text=u""):
+        def __new__(cls, text=""):
             return _fsnative(text)
 
     new_type = meta("fsnative", (object,), dict(impl.__dict__))
@@ -302,7 +302,7 @@ def _typecheck_fsnative(path):
         return False
 
     if PY3 or is_win:
-        if u"\x00" in path:
+        if "\x00" in path:
             return False
 
         if is_unix:
@@ -351,7 +351,7 @@ def _fsn2native(path):
         if b"\x00" in path:
             raise TypeError("fsnative can't contain nulls")
     else:
-        if u"\x00" in path:
+        if "\x00" in path:
             raise TypeError("fsnative can't contain nulls")
 
     return path
@@ -412,7 +412,7 @@ def path2fsn(path):
                 raise ValueError("embedded null")
             path = fsn2norm(path)
         else:
-            if u"\x00" in path:
+            if "\x00" in path:
                 raise ValueError("embedded null")
             path = fsn2norm(path)
 
@@ -538,7 +538,7 @@ def bytes2fsn(data, encoding):
             path = _decode_surrogatepass(data, encoding)
         except LookupError:
             raise ValueError("invalid encoding %r" % encoding)
-        if u"\x00" in path:
+        if "\x00" in path:
             raise ValueError("contains nulls")
         return path
     else:
@@ -602,7 +602,7 @@ def uri2fsn(uri):
             path = "\\\\" + path
         if PY2:
             path = path.decode("utf-8")
-        if u"\x00" in path:
+        if "\x00" in path:
             raise ValueError("embedded null")
         return path
     else:
@@ -662,4 +662,4 @@ def fsn2uri(path):
         return _quote_path(uri.encode("utf-8", _surrogatepass))
 
     else:
-        return u"file://" + _quote_path(path)
+        return "file://" + _quote_path(path)

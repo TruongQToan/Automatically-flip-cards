@@ -11,8 +11,8 @@ import signal
 import contextlib
 import optparse
 
-from mutagen._senf import print_
-from mutagen._compat import text_type, iterbytes
+from ._senf import print_
+from ._compat import text_type, iterbytes
 
 
 def split_escape(string, sep, maxsplit=None, escape_char="\\"):

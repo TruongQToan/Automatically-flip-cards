@@ -26,11 +26,11 @@ were all consulted.
 import struct
 import sys
 
-from mutagen import FileType, Tags, StreamInfo, PaddingInfo
-from mutagen._constants import GENRES
-from mutagen._util import cdata, insert_bytes, DictProxy, MutagenError, \
+from .. import FileType, Tags, StreamInfo, PaddingInfo
+from .._constants import GENRES
+from .._util import cdata, insert_bytes, DictProxy, MutagenError, \
     hashable, enum, get_size, resize_bytes, loadfile, convert_error
-from mutagen._compat import (reraise, PY2, string_types, text_type, chr_,
+from .._compat import (reraise, PY2, string_types, text_type, chr_,
                              iteritems, PY3, cBytesIO, izip, xrange)
 from ._atom import Atoms, Atom, AtomError
 from ._util import parse_full_atom
@@ -246,7 +246,7 @@ def _item_sort_key(key, value):
              "\xa9gen", "gnre", "trkn", "disk",
              "\xa9day", "cpil", "pgap", "pcst", "tmpo",
              "\xa9too", "----", "covr", "\xa9lyr"]
-    order = dict(izip(order, xrange(len(order))))
+    order = dict(zip(order, range(len(order))))
     last = len(order)
     # If there's no key-based way to distinguish, order by length.
     # If there's still no way, go by string comparison on the
@@ -395,7 +395,7 @@ class MP4Tags(DictProxy, Tags):
     def save(self, filething, padding=None):
 
         values = []
-        items = sorted(self.items(), key=lambda kv: _item_sort_key(*kv))
+        items = sorted(list(self.items()), key=lambda kv: _item_sort_key(*kv))
         for key, value in items:
             try:
                 values.append(self._render(key, value))
@@ -870,22 +870,22 @@ class MP4Tags(DictProxy, Tags):
         def to_line(key, value):
             assert isinstance(key, text_type)
             if isinstance(value, text_type):
-                return u"%s=%s" % (key, value)
-            return u"%s=%r" % (key, value)
+                return "%s=%s" % (key, value)
+            return "%s=%r" % (key, value)
 
         values = []
         for key, value in sorted(iteritems(self)):
             if not isinstance(key, text_type):
                 key = key.decode("latin-1")
             if key == "covr":
-                values.append(u"%s=%s" % (key, u", ".join(
-                    [u"[%d bytes of data]" % len(data) for data in value])))
+                values.append("%s=%s" % (key, ", ".join(
+                    ["[%d bytes of data]" % len(data) for data in value])))
             elif isinstance(value, list):
                 for v in value:
                     values.append(to_line(key, v))
             else:
                 values.append(to_line(key, value))
-        return u"\n".join(values)
+        return "\n".join(values)
 
 
 class MP4Info(StreamInfo):
@@ -899,7 +899,7 @@ class MP4Info(StreamInfo):
         channels (`int`): number of audio channels
         sample_rate (`int`): audio sampling rate in Hz
         bits_per_sample (`int`): bits per sample
-        codec (`mutagen.text`):
+        codec (`.text`):
             * if starting with ``"mp4a"`` uses an mp4a audio codec
               (see the codec parameter in rfc6381 for details e.g.
               ``"mp4a.40.2"``)
@@ -907,7 +907,7 @@ class MP4Info(StreamInfo):
               http://www.mp4ra.org/codecs.html
 
             e.g. ``"mp4a"``, ``"alac"``, ``"mp4a.40.2"``, ``"ac-3"`` etc.
-        codec_description (`mutagen.text`):
+        codec_description (`.text`):
             Name of the codec used (ALAC, AAC LC, AC-3...). Values might
             change in the future, use for display purposes only.
     """
@@ -917,8 +917,8 @@ class MP4Info(StreamInfo):
     channels = 0
     sample_rate = 0
     bits_per_sample = 0
-    codec = u""
-    codec_description = u""
+    codec = ""
+    codec_description = ""
 
     def __init__(self, *args, **kwargs):
         if args or kwargs:
@@ -1105,7 +1105,7 @@ def delete(filething):
     Arguments:
         filething (filething)
     Raises:
-        mutagen.MutagenError
+        .MutagenError
 
     Remove tags from a file.
     """

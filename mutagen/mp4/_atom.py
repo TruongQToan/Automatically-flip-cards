@@ -8,8 +8,8 @@
 
 import struct
 
-from mutagen._compat import PY2
-from mutagen._util import convert_error
+from .._compat import PY2
+from .._util import convert_error
 
 # This is not an exhaustive list of container atoms, but just the
 # ones this module needs to peek inside.
@@ -181,7 +181,7 @@ class Atoms(object):
         """
 
         if PY2:
-            if isinstance(names, basestring):
+            if isinstance(names, str):
                 names = names.split(b".")
         else:
             if isinstance(names, bytes):

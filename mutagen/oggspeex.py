@@ -20,10 +20,10 @@ http://lists.xiph.org/pipermail/speex-dev/2006-July/004676.html.
 __all__ = ["OggSpeex", "Open", "delete"]
 
 from mutagen import StreamInfo
-from mutagen._vorbis import VCommentDict
-from mutagen.ogg import OggPage, OggFileType, error as OggError
-from mutagen._util import cdata, get_size, loadfile, convert_error
-from mutagen._tags import PaddingInfo
+from ._vorbis import VCommentDict
+from .ogg import OggPage, OggFileType, error as OggError
+from ._util import cdata, get_size, loadfile, convert_error
+from ._tags import PaddingInfo
 
 
 class error(OggError):
@@ -70,7 +70,7 @@ class OggSpeexInfo(StreamInfo):
         self.length = page.position / float(self.sample_rate)
 
     def pprint(self):
-        return u"Ogg Speex, %.2f seconds" % self.length
+        return "Ogg Speex, %.2f seconds" % self.length
 
 
 class OggSpeexVComment(VCommentDict):
@@ -139,7 +139,7 @@ class OggSpeex(OggFileType):
 
     Attributes:
         info (`OggSpeexInfo`)
-        tags (`mutagen._vorbis.VCommentDict`)
+        tags (`._vorbis.VCommentDict`)
     """
 
     _Info = OggSpeexInfo
@@ -166,7 +166,7 @@ def delete(filething):
     Arguments:
         filething (filething)
     Raises:
-        mutagen.MutagenError
+        .MutagenError
 
     Remove tags from a file.
     """

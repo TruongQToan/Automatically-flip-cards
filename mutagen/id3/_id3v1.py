@@ -11,7 +11,7 @@
 import errno
 from struct import error as StructError, unpack
 
-from mutagen._util import chr_, text_type
+from .._util import chr_, text_type
 
 from ._frames import TCON, TRCK, COMM, TDRC, TALB, TPE1, TIT2
 
@@ -94,8 +94,8 @@ def ParseID3v1(data):
     def fix(data):
         return data.split(b"\x00")[0].strip().decode('latin1')
 
-    title, artist, album, year, comment = map(
-        fix, [title, artist, album, year, comment])
+    title, artist, album, year, comment = list(map(
+        fix, [title, artist, album, year, comment]))
 
     frames = {}
     if title:
@@ -123,8 +123,8 @@ def MakeID3v1(id3):
 
     v1 = {}
 
-    for v2id, name in {"TIT2": "title", "TPE1": "artist",
-                       "TALB": "album"}.items():
+    for v2id, name in list({"TIT2": "title", "TPE1": "artist",
+                       "TALB": "album"}.items()):
         if v2id in id3:
             text = id3[v2id].text[0].encode('latin1', 'replace')[:30]
         else:

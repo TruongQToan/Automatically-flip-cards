@@ -19,11 +19,11 @@ __all__ = ["OggOpus", "Open", "delete"]
 import struct
 
 from mutagen import StreamInfo
-from mutagen._compat import BytesIO
-from mutagen._util import get_size, loadfile, convert_error
-from mutagen._tags import PaddingInfo
-from mutagen._vorbis import VCommentDict
-from mutagen.ogg import OggPage, OggFileType, error as OggError
+from ._compat import BytesIO
+from ._util import get_size, loadfile, convert_error
+from ._tags import PaddingInfo
+from ._vorbis import VCommentDict
+from .ogg import OggPage, OggFileType, error as OggError
 
 
 class error(OggError):
@@ -75,7 +75,7 @@ class OggOpusInfo(StreamInfo):
         self.length = (page.position - self.__pre_skip) / float(48000)
 
     def pprint(self):
-        return u"Ogg Opus, %.2f seconds" % (self.length)
+        return "Ogg Opus, %.2f seconds" % (self.length)
 
 
 class OggOpusVComment(VCommentDict):
@@ -146,7 +146,7 @@ class OggOpus(OggFileType):
 
     Attributes:
         info (`OggOpusInfo`)
-        tags (`mutagen._vorbis.VCommentDict`)
+        tags (`._vorbis.VCommentDict`)
 
     """
 
@@ -174,7 +174,7 @@ def delete(filething):
     Arguments:
         filething (filething)
     Raises:
-        mutagen.MutagenError
+        .MutagenError
 
     Remove tags from a file.
     """

@@ -10,10 +10,10 @@
 
 import struct
 
-import mutagen
-from mutagen._util import insert_bytes, delete_bytes, enum, \
+from .. import *
+from .._util import insert_bytes, delete_bytes, enum, \
     loadfile, convert_error, read_full
-from mutagen._tags import PaddingInfo
+from .._tags import PaddingInfo
 
 from ._util import error, ID3NoHeaderError, ID3UnsupportedVersionError, \
     BitPaddedInt
@@ -34,7 +34,7 @@ class ID3v1SaveOptions(object):
     """ID3v1 tags will be created and/or updated"""
 
 
-class ID3(ID3Tags, mutagen.Metadata):
+class ID3(ID3Tags, Metadata):
     """ID3(filething=None)
 
     A file with an ID3v2 tag.
@@ -59,7 +59,7 @@ class ID3(ID3Tags, mutagen.Metadata):
         size (int): the total size of the ID3 tag, including the header
     """
 
-    __module__ = "mutagen.id3"
+    __module__ = ".id3"
 
     PEDANTIC = True
     """`bool`:
@@ -119,7 +119,7 @@ class ID3(ID3Tags, mutagen.Metadata):
 
         Args:
             filename (filething): filename or file object to load tag data from
-            known_frames (Dict[`mutagen.text`, `Frame`]): dict mapping frame
+            known_frames (Dict[`.text`, `Frame`]): dict mapping frame
                 IDs to Frame objects
             translate (bool): Update all tags to ID3v2.3/4 internally. If you
                 intend to save, this must be true or you have to
@@ -129,10 +129,10 @@ class ID3(ID3Tags, mutagen.Metadata):
 
         Example of loading a custom frame::
 
-            my_frames = dict(mutagen.id3.Frames)
+            my_frames = dict(.id3.Frames)
             class XMYF(Frame): ...
             my_frames["XMYF"] = XMYF
-            mutagen.id3.ID3(filename, known_frames=my_frames)
+            .id3.ID3(filename, known_frames=my_frames)
         """
 
         fileobj = filething.fileobj
@@ -154,7 +154,7 @@ class ID3(ID3Tags, mutagen.Metadata):
                 raise
 
             self.version = ID3Header._V11
-            for v in frames.values():
+            for v in list(frames.values()):
                 self.add(v)
         else:
             # XXX: attach to the header object so we have it in spec parsing..
@@ -226,7 +226,7 @@ class ID3(ID3Tags, mutagen.Metadata):
             padding (PaddingFunction)
 
         Raises:
-            mutagen.MutagenError
+            .MutagenError
 
         By default Mutagen saves ID3v2.4 tags. If you want to save ID3v2.3
         tags, you must call method update_to_v23 before saving the file.
@@ -296,7 +296,7 @@ def delete(filething, delete_v1=True, delete_v2=True):
         delete_v2 (bool): delete any ID3v2 tag
 
     Raises:
-        mutagen.MutagenError: In case deleting failed
+        .MutagenError: In case deleting failed
     """
 
     f = filething.fileobj
@@ -322,7 +322,7 @@ def delete(filething, delete_v1=True, delete_v2=True):
                 delete_bytes(f, insize + 10, 0)
 
 
-class ID3FileType(mutagen.FileType):
+class ID3FileType(FileType):
     """ID3FileType(filething, ID3=None, **kwargs)
 
     An unknown type of file with ID3 tags.
@@ -332,19 +332,19 @@ class ID3FileType(mutagen.FileType):
         ID3 (ID3): An ID3 subclass to use for tags.
 
     Raises:
-        mutagen.MutagenError: In case loading the file failed
+        .MutagenError: In case loading the file failed
 
     Load stream and tag information from a file.
 
     A custom tag reader may be used in instead of the default
-    mutagen.id3.ID3 object, e.g. an EasyID3 reader.
+    .id3.ID3 object, e.g. an EasyID3 reader.
     """
 
-    __module__ = "mutagen.id3"
+    __module__ = ".id3"
 
     ID3 = ID3
 
-    class _Info(mutagen.StreamInfo):
+    class _Info(StreamInfo):
         length = 0
 
         def __init__(self, fileobj, offset):
@@ -352,7 +352,7 @@ class ID3FileType(mutagen.FileType):
 
         @staticmethod
         def pprint():
-            return u"Unknown format with ID3 tag"
+            return "Unknown format with ID3 tag"
 
     @staticmethod
     def score(filename, fileobj, header_data):
@@ -366,7 +366,7 @@ class ID3FileType(mutagen.FileType):
                 that used when loading.
 
         A custom tag reader may be used in instead of the default
-        `ID3` object, e.g. an `mutagen.easyid3.EasyID3` reader.
+        `ID3` object, e.g. an `.easyid3.EasyID3` reader.
         """
 
         if ID3 is None:

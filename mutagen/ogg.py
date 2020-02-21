@@ -10,7 +10,7 @@
 
 This module reads and writes a subset of the Ogg bitstream format
 version 0. It does *not* read or write Ogg Vorbis files! For that,
-you should use mutagen.oggvorbis.
+you should use .oggvorbis.
 
 This implementation is based on the RFC 3533 standard found at
 http://www.xiph.org/ogg/doc/rfc3533.txt.
@@ -21,7 +21,7 @@ import sys
 import zlib
 
 from mutagen import FileType
-from mutagen._util import cdata, resize_bytes, MutagenError, loadfile, seek_end
+from ._util import cdata, resize_bytes, MutagenError, loadfile, seek_end
 from ._compat import cBytesIO, reraise, chr_, izip, xrange
 
 
@@ -387,8 +387,8 @@ class OggPage(object):
 
         # Number the new pages starting from the first old page.
         first = old_pages[0].sequence
-        for page, seq in izip(new_pages,
-                              xrange(first, first + len(new_pages))):
+        for page, seq in zip(new_pages,
+                              range(first, first + len(new_pages))):
             page.sequence = seq
             page.serial = old_pages[0].serial
 
@@ -416,7 +416,7 @@ class OggPage(object):
         offset_adjust = 0
         new_data_end = None
         assert len(old_pages) == len(new_data)
-        for old_page, data in izip(old_pages, new_data):
+        for old_page, data in zip(old_pages, new_data):
             offset = old_page.offset + offset_adjust
             data_size = len(data)
             resize_bytes(fileobj, old_page.size, data_size, offset)
@@ -520,7 +520,7 @@ class OggFileType(FileType):
         Args:
             filething (filething)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         fileobj = filething.fileobj
@@ -545,7 +545,7 @@ class OggFileType(FileType):
         Args:
             filething (filething)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         fileobj = filething.fileobj
@@ -578,7 +578,7 @@ class OggFileType(FileType):
             filething (filething)
             padding (PaddingFunction)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         try:

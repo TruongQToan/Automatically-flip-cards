@@ -9,9 +9,9 @@
 
 import struct
 
-from mutagen._tags import Tags
-from mutagen._util import DictProxy, convert_error, read_full
-from mutagen._compat import PY3, text_type, itervalues
+from .._tags import Tags
+from .._util import DictProxy, convert_error, read_full
+from .._compat import PY3, text_type, itervalues
 
 from ._util import BitPaddedInt, unsynch, ID3JunkFrameError, \
     ID3EncryptionUnsupportedError, is_valid_frame_id, error, \
@@ -169,7 +169,7 @@ def determine_bpi(data, frames, EMPTY=b"\x00" * 10):
 
 class ID3Tags(DictProxy, Tags):
 
-    __module__ = "mutagen.id3"
+    __module__ = ".id3"
 
     def __init__(self, *args, **kwargs):
         self.unknown_frames = []
@@ -236,7 +236,7 @@ class ID3Tags(DictProxy, Tags):
             return [self[key]]
         else:
             key = key + ":"
-            return [v for s, v in self.items() if s.startswith(key)]
+            return [v for s, v in list(self.items()) if s.startswith(key)]
 
     def setall(self, key, values):
         """Delete frames of the given type and add frames in 'values'.
@@ -280,7 +280,7 @@ class ID3Tags(DictProxy, Tags):
             ``POPM=user@example.org=3 128/255``
         """
 
-        frames = sorted(Frame.pprint(s) for s in self.values())
+        frames = sorted(Frame.pprint(s) for s in list(self.values()))
         return "\n".join(frames)
 
     def _add(self, frame, strict):
@@ -371,7 +371,7 @@ class ID3Tags(DictProxy, Tags):
         # TDAT, TYER, and TIME have been turned into TDRC.
         try:
             date = text_type(self.get("TYER", ""))
-            if date.strip(u"\x00"):
+            if date.strip("\x00"):
                 self.pop("TYER")
                 dat = text_type(self.get("TDAT", ""))
                 if dat.strip("\x00"):
@@ -482,7 +482,7 @@ class ID3Tags(DictProxy, Tags):
     def _copy(self):
         """Creates a shallow copy of all tags"""
 
-        items = self.items()
+        items = list(self.items())
         subs = {}
         for f in (self.getall("CHAP") + self.getall("CTOC")):
             subs[f.HashKey] = f.sub_frames._copy()

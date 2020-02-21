@@ -20,8 +20,8 @@ for more information.
 __all__ = ["WavPack", "Open", "delete"]
 
 from mutagen import StreamInfo
-from mutagen.apev2 import APEv2File, error, delete
-from mutagen._util import cdata, convert_error
+from .apev2 import APEv2File, error, delete
+from ._util import cdata, convert_error
 
 
 class WavPackHeaderError(error):
@@ -109,7 +109,7 @@ class WavPackInfo(StreamInfo):
         self.length = float(samples) / self.sample_rate
 
     def pprint(self):
-        return u"WavPack, %.2f seconds, %d Hz" % (self.length,
+        return "WavPack, %.2f seconds, %d Hz" % (self.length,
                                                   self.sample_rate)
 
 

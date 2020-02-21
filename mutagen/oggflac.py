@@ -9,7 +9,7 @@
 """Read and write Ogg FLAC comments.
 
 This module handles FLAC files wrapped in an Ogg bitstream. The first
-FLAC stream found is used. For 'naked' FLACs, see mutagen.flac.
+FLAC stream found is used. For 'naked' FLACs, see .flac.
 
 This module is based off the specification at
 http://flac.sourceforge.net/ogg_mapping.html.
@@ -22,10 +22,10 @@ import struct
 from ._compat import cBytesIO
 
 from mutagen import StreamInfo
-from mutagen.flac import StreamInfo as FLACStreamInfo, error as FLACError
-from mutagen._vorbis import VCommentDict
-from mutagen._util import loadfile, convert_error
-from mutagen.ogg import OggPage, OggFileType, error as OggError
+from .flac import StreamInfo as FLACStreamInfo, error as FLACError
+from ._vorbis import VCommentDict
+from ._util import loadfile, convert_error
+from .ogg import OggPage, OggFileType, error as OggError
 
 
 class error(OggError):
@@ -85,7 +85,7 @@ class OggFLACStreamInfo(StreamInfo):
         self.length = page.position / float(self.sample_rate)
 
     def pprint(self):
-        return u"Ogg FLAC, %.2f seconds, %d Hz" % (
+        return "Ogg FLAC, %.2f seconds, %d Hz" % (
             self.length, self.sample_rate)
 
 
@@ -145,7 +145,7 @@ class OggFLAC(OggFileType):
 
     Attributes:
         info (`OggFLACStreamInfo`)
-        tags (`mutagen._vorbis.VCommentDict`)
+        tags (`._vorbis.VCommentDict`)
     """
 
     _Info = OggFLACStreamInfo
@@ -173,7 +173,7 @@ def delete(filething):
     Arguments:
         filething (filething)
     Raises:
-        mutagen.MutagenError
+        .MutagenError
 
     Remove tags from a file.
     """

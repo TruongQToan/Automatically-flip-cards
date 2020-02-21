@@ -12,8 +12,8 @@
 __all__ = ["ASF", "Open"]
 
 from mutagen import FileType, Tags, StreamInfo
-from mutagen._util import resize_bytes, DictMixin, loadfile, convert_error
-from mutagen._compat import string_types, long_, PY3, izip
+from ._util import resize_bytes, DictMixin, loadfile, convert_error
+from ._compat import string_types, long_, PY3, izip
 
 from ._util import error, ASFError, ASFHeaderError
 from ._objects import HeaderObject, MetadataLibraryObject, MetadataObject, \
@@ -38,12 +38,12 @@ class ASFInfo(StreamInfo):
         sample_rate (`int`): Sample rate in Hz
         bitrate (`int`): Bitrate in bps
         channels (`int`): Number of channels
-        codec_type (`mutagen.text`): Name of the codec type of the first
+        codec_type (`.text`): Name of the codec type of the first
             audio stream or an empty string if unknown. Example:
             ``Windows Media Audio 9 Standard``
-        codec_name (`mutagen.text`): Name and maybe version of the codec used.
+        codec_name (`.text`): Name and maybe version of the codec used.
             Example: ``Windows Media Audio 9.1``
-        codec_description (`mutagen.text`): Further information on the codec
+        codec_description (`.text`): Further information on the codec
             used. Example: ``64 kbps, 48 kHz, stereo 2-pass CBR``
     """
 
@@ -51,26 +51,26 @@ class ASFInfo(StreamInfo):
     sample_rate = 0
     bitrate = 0
     channels = 0
-    codec_type = u""
-    codec_name = u""
-    codec_description = u""
+    codec_type = ""
+    codec_name = ""
+    codec_description = ""
 
     def __init__(self):
         self.length = 0.0
         self.sample_rate = 0
         self.bitrate = 0
         self.channels = 0
-        self.codec_type = u""
-        self.codec_name = u""
-        self.codec_description = u""
+        self.codec_type = ""
+        self.codec_name = ""
+        self.codec_description = ""
 
     def pprint(self):
         """Returns:
             text: a stream information text summary
         """
 
-        s = u"ASF (%s) %d bps, %s Hz, %d channels, %.2f seconds" % (
-            self.codec_type or self.codec_name or u"???", self.bitrate,
+        s = "ASF (%s) %d bps, %s Hz, %d channels, %.2f seconds" % (
+            self.codec_type or self.codec_name or "???", self.bitrate,
             self.sample_rate, self.channels, self.length)
         return s
 
@@ -163,7 +163,7 @@ class ASFTags(list, DictMixin, Tags):
     def keys(self):
         """Return a sequence of all keys in the comment."""
 
-        return self and set(next(izip(*self)))
+        return self and set(next(zip(*self)))
 
     def as_dict(self):
         """Return a copy of the comment data in a real dict."""
@@ -231,7 +231,7 @@ class ASF(FileType):
         Args:
             filething (filething)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         fileobj = filething.fileobj
@@ -261,7 +261,7 @@ class ASF(FileType):
             filething (filething)
             padding (PaddingFunction)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         # Move attributes to the right objects
@@ -325,7 +325,7 @@ class ASF(FileType):
         Args:
             filething (filething)
         Raises:
-            mutagen.MutagenError
+            .MutagenError
         """
 
         self.tags.clear()

@@ -25,7 +25,7 @@ import struct
 from ._compat import endswith
 from ._util import convert_error
 from mutagen import StreamInfo
-from mutagen.apev2 import APEv2File, error, delete
+from .apev2 import APEv2File, error, delete
 
 
 class OptimFROGHeaderError(error):
@@ -62,7 +62,7 @@ class OptimFROGInfo(StreamInfo):
             self.length = 0.0
 
     def pprint(self):
-        return u"OptimFROG, %.2f seconds, %d Hz" % (self.length,
+        return "OptimFROG, %.2f seconds, %d Hz" % (self.length,
                                                     self.sample_rate)
 
 
@@ -71,7 +71,7 @@ class OptimFROG(APEv2File):
 
     Attributes:
         info (`OptimFROGInfo`)
-        tags (`mutagen.apev2.APEv2`)
+        tags (`.apev2.APEv2`)
     """
 
     _Info = OptimFROGInfo

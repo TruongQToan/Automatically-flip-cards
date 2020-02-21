@@ -10,8 +10,8 @@
 
 ::
 
-    import mutagen.[format]
-    metadata = mutagen.[format].Open(filename)
+    import .[format]
+    metadata = .[format].Open(filename)
 
 ``metadata`` acts like a dictionary of tags in the file. Tags are generally a
 list of string-like values, but may have additional methods available
@@ -19,9 +19,9 @@ depending on tag or format. They may also be entirely different objects
 for certain keys, again depending on format.
 """
 
-from mutagen._util import MutagenError
-from mutagen._file import FileType, StreamInfo, File
-from mutagen._tags import Tags, Metadata, PaddingInfo
+from ._util import MutagenError
+from ._file import FileType, StreamInfo, File
+from ._tags import Tags, Metadata, PaddingInfo
 
 version = (1, 39)
 """Version tuple."""

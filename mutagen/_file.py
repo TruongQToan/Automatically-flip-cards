@@ -8,8 +8,8 @@
 
 import warnings
 
-from mutagen._util import DictMixin, loadfile
-from mutagen._compat import izip
+from ._util import DictMixin, loadfile
+from ._compat import izip
 
 
 class FileType(DictMixin):
@@ -94,7 +94,7 @@ class FileType(DictMixin):
         if self.tags is None:
             return []
         else:
-            return self.tags.keys()
+            return list(self.tags.keys())
 
     @loadfile(writable=True)
     def delete(self, filething):
@@ -103,7 +103,7 @@ class FileType(DictMixin):
         Remove tags from a file.
 
         In cases where the tagging format is independent of the file type
-        (for example `mutagen.id3.ID3`) all traces of the tagging format will
+        (for example `.id3.ID3`) all traces of the tagging format will
         be removed.
         In cases where the tag is part of the file type, all tags and
         padding will be removed.
@@ -233,38 +233,38 @@ def File(filething, options=None, easy=False):
     """
 
     if options is None:
-        from mutagen.asf import ASF
-        from mutagen.apev2 import APEv2File
-        from mutagen.flac import FLAC
+        from .asf import ASF
+        from .apev2 import APEv2File
+        from .flac import FLAC
         if easy:
-            from mutagen.easyid3 import EasyID3FileType as ID3FileType
+            from .easyid3 import EasyID3FileType as ID3FileType
         else:
-            from mutagen.id3 import ID3FileType
+            from .id3 import ID3FileType
         if easy:
-            from mutagen.mp3 import EasyMP3 as MP3
+            from .mp3 import EasyMP3 as MP3
         else:
-            from mutagen.mp3 import MP3
-        from mutagen.oggflac import OggFLAC
-        from mutagen.oggspeex import OggSpeex
-        from mutagen.oggtheora import OggTheora
-        from mutagen.oggvorbis import OggVorbis
-        from mutagen.oggopus import OggOpus
+            from .mp3 import MP3
+        from .oggflac import OggFLAC
+        from .oggspeex import OggSpeex
+        from .oggtheora import OggTheora
+        from .oggvorbis import OggVorbis
+        from .oggopus import OggOpus
         if easy:
-            from mutagen.trueaudio import EasyTrueAudio as TrueAudio
+            from .trueaudio import EasyTrueAudio as TrueAudio
         else:
-            from mutagen.trueaudio import TrueAudio
-        from mutagen.wavpack import WavPack
+            from .trueaudio import TrueAudio
+        from .wavpack import WavPack
         if easy:
-            from mutagen.easymp4 import EasyMP4 as MP4
+            from .easymp4 import EasyMP4 as MP4
         else:
-            from mutagen.mp4 import MP4
-        from mutagen.musepack import Musepack
-        from mutagen.monkeysaudio import MonkeysAudio
-        from mutagen.optimfrog import OptimFROG
-        from mutagen.aiff import AIFF
-        from mutagen.aac import AAC
-        from mutagen.smf import SMF
-        from mutagen.dsf import DSF
+            from .mp4 import MP4
+        from .musepack import Musepack
+        from .monkeysaudio import MonkeysAudio
+        from .optimfrog import OptimFROG
+        from .aiff import AIFF
+        from .aac import AAC
+        from .smf import SMF
+        from .dsf import DSF
         options = [MP3, TrueAudio, OggTheora, OggSpeex, OggVorbis, OggFLAC,
                    FLAC, AIFF, APEv2File, MP4, ID3FileType, WavPack,
                    Musepack, MonkeysAudio, OptimFROG, ASF, OggOpus, AAC,
@@ -286,7 +286,7 @@ def File(filething, options=None, easy=False):
     results = [(Kind.score(filething.name, fileobj, header), Kind.__name__)
                for Kind in options]
 
-    results = list(izip(results, options))
+    results = list(zip(results, options))
     results.sort()
     (score, name), Kind = results[-1]
     if score > 0:
