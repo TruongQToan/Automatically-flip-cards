@@ -21,7 +21,7 @@ from threading import Thread
 from .mutagen.Queue import Queue, Empty
 from .mutagen.Queue import Queue
 from anki.sound import play
-from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
+#from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
 from anki.sound import MplayerMonitor
 from anki.hooks import addHook, wrap
 from aqt.utils import showInfo
@@ -338,36 +338,36 @@ def enqueue_output(out, queue):
     out.close()
 
 
-def my_keyHandler(self, evt):
-    #global messageBuff
-    # global audio_speed, audio_replay
+# def my_keyHandler(self, evt):
+#     #global messageBuff
+#     # global audio_speed, audio_replay
     
-    key = unicode(evt.text())
+#     key = unicode(evt.text())
 
-    if key == "0":
-        audio_speed = 1.0
-    elif key == "{":
-        Config.adjust_both = False
-        Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
-    elif key == "}":
-        Config.adjust_both = False
-        Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
-    elif key == "<":
-        Config.adjust_both = True
-        Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
-    elif key == ">":
-        Config.adjust_both = True
-        Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
-    if key in "0\{\}<>":    
-        if anki.sound.mplayerManager is not None and not Config.is_question:
-            if anki.sound.mplayerManager.mplayer is not None: 
-                anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % Config.audio_speed))
+#     if key == "0":
+#         audio_speed = 1.0
+#     elif key == "{":
+#         Config.adjust_both = False
+#         Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
+#     elif key == "}":
+#         Config.adjust_both = False
+#         Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
+#     elif key == "<":
+#         Config.adjust_both = True
+#         Config.audio_speed = max(0.1, Config.audio_speed - 0.1)
+#     elif key == ">":
+#         Config.adjust_both = True
+#         Config.audio_speed = min(4.0, Config.audio_speed + 0.1)
+#     if key in "0\{\}<>":    
+#         if anki.sound.mplayerManager is not None and not Config.is_question:
+#             if anki.sound.mplayerManager.mplayer is not None: 
+#                 anki.sound.mplayerManager.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+#                 anki.sound.mplayerManager.mplayer.stdin.write(("speed_set %f \n" % Config.audio_speed))
     
-    if key == "p":
-        anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
-    if key == "r":
-        anki.sound.mplayerClear = True
+#     if key == "p":
+#         anki.sound.mplayerManager.mplayer.stdin.write("pause\n")
+#     if key == "r":
+#         anki.sound.mplayerClear = True
 
 
     # Clear Message Buffer (for debugging)
@@ -378,141 +378,141 @@ def my_keyHandler(self, evt):
     #if key == "9":
     #    sys.stderr.write(messageBuff)
             
-def my_runHandler(self):
-    #global messageBuff
-    #global currentlyPlaying
+# def my_runHandler(self):
+#     #global messageBuff
+#     #global currentlyPlaying
     
-    self.mplayer = None
-    self.deadPlayers = []
+#     self.mplayer = None
+#     self.deadPlayers = []
     
-    while 1:
-        anki.sound.mplayerEvt.wait()
-        anki.sound.mplayerEvt.clear()
-        # clearing queue?
-        if anki.sound.mplayerClear and self.mplayer:
-            try:
-                self.mplayer.stdin.write("stop\n")
-            except:
-                # mplayer quit by user (likely video)
-                self.deadPlayers.append(self.mplayer)
-                self.mplayer = None
+#     while 1:
+#         anki.sound.mplayerEvt.wait()
+#         anki.sound.mplayerEvt.clear()
+#         # clearing queue?
+#         if anki.sound.mplayerClear and self.mplayer:
+#             try:
+#                 self.mplayer.stdin.write("stop\n")
+#             except:
+#                 # mplayer quit by user (likely video)
+#                 self.deadPlayers.append(self.mplayer)
+#                 self.mplayer = None
         
-        # loop through files to play
-        while anki.sound.mplayerQueue:
-            # ensure started
-            if not self.mplayer:
-                my_startProcessHandler(self)
-                #self.startProcess()
+#         # loop through files to play
+#         while anki.sound.mplayerQueue:
+#             # ensure started
+#             if not self.mplayer:
+#                 my_startProcessHandler(self)
+#                 #self.startProcess()
                 
-            # pop a file
-            try:
-                item = anki.sound.mplayerQueue.pop(0)      
-            except IndexError:
-                # queue was cleared by main thread
-                continue
-            if anki.sound.mplayerClear:
-                anki.sound.mplayerClear = False
-                extra = ""
-            else:
-                extra = " 1"
-            cmd = 'loadfile "%s"%s\n' % (item, extra)
+#             # pop a file
+#             try:
+#                 item = anki.sound.mplayerQueue.pop(0)      
+#             except IndexError:
+#                 # queue was cleared by main thread
+#                 continue
+#             if anki.sound.mplayerClear:
+#                 anki.sound.mplayerClear = False
+#                 extra = ""
+#             else:
+#                 extra = " 1"
+#             cmd = 'loadfile "%s"%s\n' % (item, extra)
             
-            try:
-                self.mplayer.stdin.write(cmd)
-            except:
-                # mplayer has quit and needs restarting
-                self.deadPlayers.append(self.mplayer)
-                self.mplayer = None
-                my_startProcessHandler(self)
-                #self.startProcess()
-                self.mplayer.stdin.write(cmd)
+#             try:
+#                 self.mplayer.stdin.write(cmd)
+#             except:
+#                 # mplayer has quit and needs restarting
+#                 self.deadPlayers.append(self.mplayer)
+#                 self.mplayer = None
+#                 my_startProcessHandler(self)
+#                 #self.startProcess()
+#                 self.mplayer.stdin.write(cmd)
 
-            if Config.adjust_both and (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0):
-                self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
-                self.mplayer.stdin.write("seek 0 1\n")
-            elif (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0) and not Config.is_question:
-                self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
-                self.mplayer.stdin.write("seek 0 1\n")
-            elif Config.is_question:
-                self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
-                self.mplayer.stdin.write("speed_set %f \n" % 1.0)
-                self.mplayer.stdin.write("seek 0 1\n")
+#             if Config.adjust_both and (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0):
+#                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+#                 self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
+#                 self.mplayer.stdin.write("seek 0 1\n")
+#             elif (abs(Config.audio_speed - 1.0) > 0.01 or Config.audio_speed == 1.0) and not Config.is_question:
+#                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+#                 self.mplayer.stdin.write("speed_set %f \n" % Config.audio_speed)
+#                 self.mplayer.stdin.write("seek 0 1\n")
+#             elif Config.is_question:
+#                 self.mplayer.stdin.write("af_add scaletempo=stride=10:overlap=0.8\n")
+#                 self.mplayer.stdin.write("speed_set %f \n" % 1.0)
+#                 self.mplayer.stdin.write("seek 0 1\n")
 
-            # Clear out rest of queue
-            extraOutput = True
-            while extraOutput:
-                try:
-                    extraLine = Config.stdoutQueue.get_nowait()
-                    #messageBuff += "ExtraLine: " + line
-                except Empty:
-                    extraOutput = False
+#             # Clear out rest of queue
+#             extraOutput = True
+#             while extraOutput:
+#                 try:
+#                     extraLine = Config.stdoutQueue.get_nowait()
+#                     #messageBuff += "ExtraLine: " + line
+#                 except Empty:
+#                     extraOutput = False
             
-            # Wait until the file finished playing before adding the next file
-            finishedPlaying = False
-            while not finishedPlaying and not anki.sound.mplayerClear:
-                # poll stdout for an 'EOF code' message
-                try:
-                    line = Config.stdoutQueue.get_nowait()
-                    #messageBuff += line
-                except Empty:
-                    # nothing, sleep for a bit
-                    finishedPlaying = False
-                    time.sleep(0.05)
-                else:
-                    # check the line
-                    #messageBuff += line
-                    lineParts = line.split(':')
-                    if lineParts[0] == 'EOF code':
-                        finishedPlaying = True
+#             # Wait until the file finished playing before adding the next file
+#             finishedPlaying = False
+#             while not finishedPlaying and not anki.sound.mplayerClear:
+#                 # poll stdout for an 'EOF code' message
+#                 try:
+#                     line = Config.stdoutQueue.get_nowait()
+#                     #messageBuff += line
+#                 except Empty:
+#                     # nothing, sleep for a bit
+#                     finishedPlaying = False
+#                     time.sleep(0.05)
+#                 else:
+#                     # check the line
+#                     #messageBuff += line
+#                     lineParts = line.split(':')
+#                     if lineParts[0] == 'EOF code':
+#                         finishedPlaying = True
             
-            # Clear out rest of queue
-            extraOutput = True
-            while extraOutput:
-                try:
-                    extraLine = Config.stdoutQueue.get_nowait()
-                    #messageBuff += "ExtraLine: " + line
-                except Empty:
-                    extraOutput = False
+#             # Clear out rest of queue
+#             extraOutput = True
+#             while extraOutput:
+#                 try:
+#                     extraLine = Config.stdoutQueue.get_nowait()
+#                     #messageBuff += "ExtraLine: " + line
+#                 except Empty:
+#                     extraOutput = False
             
-        # if we feed mplayer too fast it loses files
-        time.sleep(0.1)
-        # end adding to queue
+#         # if we feed mplayer too fast it loses files
+#         time.sleep(0.1)
+#         # end adding to queue
                 
-        # wait() on finished processes. we don't want to block on the
-        # wait, so we keep trying each time we're reactivated
-        def clean(pl):
-            if pl.poll() is not None:
-                pl.wait()
-                return False
-            else:
-                showInfo("Clean")
-                return True
-        self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
+#         # wait() on finished processes. we don't want to block on the
+#         # wait, so we keep trying each time we're reactivated
+#         def clean(pl):
+#             if pl.poll() is not None:
+#                 pl.wait()
+#                 return False
+#             else:
+#                 showInfo("Clean")
+#                 return True
+#         self.deadPlayers = [pl for pl in self.deadPlayers if clean(pl)]
 
 
 def toggle_show_notification():
     Config.show_notif = not Config.show_notif
 
 
-def my_startProcessHandler(self):
-    try:
-        cmd = anki.sound.mplayerCmd + ["-slave", "-idle", '-msglevel', 'all=0:global=6']
-        devnull = file(os.devnull, "w")
+# def my_startProcessHandler(self):
+#     try:
+#         cmd = anki.sound.mplayerCmd + ["-slave", "-idle", '-msglevel', 'all=0:global=6']
+#         devnull = file(os.devnull, "w")
         
-        # open up stdout PIPE to check when files are done playing
-        self.mplayer = subprocess.Popen(
-            cmd, startupinfo=anki.sound.si, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=devnull)
+#         # open up stdout PIPE to check when files are done playing
+#         self.mplayer = subprocess.Popen(
+#             cmd, startupinfo=anki.sound.si, stdin=subprocess.PIPE,
+#             stdout=subprocess.PIPE, stderr=devnull)
 
-        # setup 
-        t = Thread(target=enqueue_output, args=(self.mplayer.stdout, Config.stdoutQueue))
-        t.daemon = True
-        t.start()
-    except OSError:
-        anki.sound.mplayerEvt.clear()
-        raise Exception("Did you install mplayer?")
+#         # setup 
+#         t = Thread(target=enqueue_output, args=(self.mplayer.stdout, Config.stdoutQueue))
+#         t.daemon = True
+#         t.start()
+#     except OSError:
+#         anki.sound.mplayerEvt.clear()
+#         raise Exception("Did you install mplayer?")
 
 
 afc = mw.form.menuTools.addMenu("Automatically flip card")
