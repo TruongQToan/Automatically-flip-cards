@@ -21,8 +21,6 @@ from threading import Thread
 from .mutagen.Queue import Queue, Empty
 from .mutagen.Queue import Queue
 from anki.sound import play
-#from anki.sound import mplayerQueue, mplayerClear, mplayerEvt
-from anki.sound import MplayerMonitor
 from anki.hooks import addHook, wrap
 from aqt.utils import showInfo
 import re
@@ -114,10 +112,16 @@ def split_audio_fields(card, m, audio_fields):
             else: break
         return q_times
 
+    def get_template():
+        if m["type"] == 0:
+            return m['tmpls'][card.ord]
+        else:
+            return m['tmpls'][0]
+
     question_audio_fields = []
     answer_audio_fields = []
     if card is not None:
-        t = m['tmpls'][card.ord]
+        t = get_template()
         q = t.get('qfmt')
         a = t.get('afmt')
         question_audio_fields.extend(helper(q))
